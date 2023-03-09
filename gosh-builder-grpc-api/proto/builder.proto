@@ -1,0 +1,26 @@
+syntax = "proto3";
+package builder;
+
+service GitRemoteGosh {
+  rpc Spawn(SpawnRequest) returns (SpawnResponse);
+  rpc Command(CommandRequest) returns (CommandResponse);
+  rpc GetArchive(GetArchiveRequest) returns (GetArchiveResponse);
+}
+
+message SpawnRequest {
+  string id = 1;
+  repeated string args = 2;
+}
+
+message SpawnResponse { bytes body = 1; }
+
+message CommandRequest {
+  string id = 1;
+  bytes body = 2;
+}
+
+message CommandResponse { bytes body = 1; }
+
+message GetArchiveRequest { string id = 1; }
+
+message GetArchiveResponse { bytes body = 1; }

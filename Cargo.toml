@@ -1,0 +1,6 @@
+[workspace]
+
+members = [
+    "gosh-builder-cli",
+    "gosh-builder-grpc-api",
+]
