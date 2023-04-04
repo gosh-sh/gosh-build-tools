@@ -23,7 +23,7 @@ impl GitRemoteGosh for GoshGrpc {
     ) -> Result<tonic::Response<SpawnResponse>, tonic::Status> {
         let request = grpc_request.into_inner();
 
-        let process = GitRemoteProces::spawn(&request.id, request.args);
+        let process = GitRemoteProces::spawn(&request.id, request.args).await;
         self.gosh_remote_pool
             .lock()
             .await

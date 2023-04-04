@@ -33,24 +33,31 @@ pub struct GitRemoteProces {
     id: String,
     git_context_dir: PathBuf,
     process: Child,
+    git_dir: PathBuf,
 }
 
 impl GitRemoteProces {
-    pub fn spawn(id: impl AsRef<str>, args: Vec<String>) -> Self {
+    pub async fn spawn(id: impl AsRef<str>, args: Vec<String>) -> Self {
         let git_context_dir: PathBuf = std::env::current_dir()
             .expect("current dir expected")
             .join(".git-cache")
             .join(id.as_ref());
 
-        std::fs::create_dir_all(git_context_dir.as_path())
+        std::fs::create_dir_all(git_context_dir.clone().as_path())
             .expect("create specific directories and their parents");
 
+        let _ = tokio::process::Command::new("git")
+            .arg("init")
+            .current_dir(&git_context_dir)
+            .status()
+            .await
+            .expect("git init");
+        let git_dir = git_context_dir.join(".git");
         let process = tokio::process::Command::new("git-remote-gosh")
             .args(args)
             .current_dir(&git_context_dir)
-            .env("GIT_DIR", "/tmp/test/.git")
+            .env("GIT_DIR", &git_dir)
             .env(GOSH_GRPC_CONTAINER, "1")
-            // .env("GOSH_TRACE", "5")
             .stdin(Stdio::piped())
             .stdout(Stdio::piped())
             .stderr(Stdio::inherit())
@@ -61,6 +68,7 @@ impl GitRemoteProces {
             id: id.as_ref().to_owned(),
             git_context_dir,
             process,
+            git_dir,
         }
     }
 
@@ -75,11 +83,8 @@ impl GitRemoteProces {
             anyhow::bail!("Can't take stdout");
         };
         let mut reader = BufReader::new(stdout).lines();
-        let input_line = String::from_utf8_lossy(&input).to_string();
-        eprintln!("input:  {}", input_line);
         let mut output = vec![];
         while let Some(line) = reader.next_line().await? {
-            eprintln!("output:  {}", line);
             if line.contains(DISPATCHER_ENDL) {
                 break;
             }
@@ -98,9 +103,9 @@ impl GitRemoteProces {
         {
             let encoder = zstd::stream::Encoder::new(&mut archive_buf, 0)?.auto_finish();
             let mut tar_builder = tar::Builder::new(encoder);
-            tar_builder.append_dir_all("objects", &self.git_context_dir)?;
+            let obj_path = self.git_dir.join("objects");
+            tar_builder.append_dir_all("objects", &obj_path)?;
         }
-        eprintln!("tar len: {}", archive_buf.len());
         Ok(archive_buf)
     }
 }
