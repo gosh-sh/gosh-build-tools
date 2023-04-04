@@ -10,14 +10,16 @@ anyhow = "1.0.69"
 clap = { version = "4.1.8", features = ["derive"] }
 hyper = { version = "0.14", features = ["full"] }
 hyper-proxy = "0.9.1"
-hyper-rustls = "0.23.2"
+hyper-rustls = "0.24"
 hyper-tls = "0.5.0"
 openssl = { version = "0.10", features = ["vendored"] }
 rs-docker = "0.0.60"
-rustls = "0.20.8"
+rustls = "0.21"
 serde = { version = "1.0.156", features = ["derive"] }
 serde_yaml = "0.9.19"
 tokio = { version = "1.26.0", features = ["full"] }
 gosh-builder-grpc-api = { path = "../gosh-builder-grpc-api/" }
-tonic = "0.8.3"
+tonic = "0.9"
 bytes = "1.4.0"
+tar = "0.4.38"
+zstd = "0.12.3"

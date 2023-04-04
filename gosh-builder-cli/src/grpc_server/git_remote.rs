@@ -1,5 +1,4 @@
 use std::{collections::HashMap, path::PathBuf, process::Stdio, sync::Arc};
-
 use tokio::{
     io::{AsyncBufReadExt, AsyncWriteExt, BufReader},
     process::Child,
@@ -28,28 +27,30 @@ impl GitRemotePool {
 
 #[derive(Debug)]
 pub struct GitRemoteProces {
+    id: String,
     git_context_dir: PathBuf,
     process: Child,
 }
 
 impl GitRemoteProces {
     pub fn spawn(id: impl AsRef<str>, args: Vec<String>) -> Self {
-        let cwd: PathBuf = std::env::current_dir()
+        let git_context_dir: PathBuf = std::env::current_dir()
             .expect("current dir expected")
             .join(".git-cache")
             .join(id.as_ref());
 
         let process = tokio::process::Command::new("git-remote-gosh")
             .args(args)
-            .current_dir(&cwd)
+            .current_dir(&git_context_dir)
             .stdin(Stdio::piped())
             .stdout(Stdio::piped())
-            .stderr(Stdio::piped())
+            .stderr(Stdio::inherit())
             .spawn()
             .expect("process spawn successful");
 
         Self {
-            git_context_dir: cwd,
+            id: id.as_ref().to_owned(),
+            git_context_dir,
             process,
         }
     }
@@ -71,7 +72,17 @@ impl GitRemoteProces {
         }
         anyhow::bail!("Unexpected end of stdout")
     }
+
     pub fn get_archive(&self) -> anyhow::Result<Vec<u8>> {
-        todo!()
+        let mut archive_buf = Vec::new();
+
+        {
+            let encoder = zstd::stream::Encoder::new(&mut archive_buf, 0)?;
+            let mut tar_builder = tar::Builder::new(encoder);
+            tar_builder.append_dir_all("", &self.git_context_dir)?;
+            tar_builder.finish()?;
+        }
+
+        Ok(archive_buf)
     }
 }
