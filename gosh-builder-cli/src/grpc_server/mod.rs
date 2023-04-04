@@ -70,7 +70,7 @@ impl GitRemoteGosh for GoshGrpc {
 
         let git_remote_process = git_remote_process_arc.lock().await;
 
-        match git_remote_process.get_archive() {
+        match git_remote_process.get_archive().await {
             Ok(output) => return Ok(tonic::Response::new(GetArchiveResponse { body: output })),
             Err(error) => return Err(tonic::Status::internal(format!("{:?}", error))),
         }

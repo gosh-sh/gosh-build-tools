@@ -5,6 +5,9 @@ use tokio::{
     sync::Mutex,
 };
 
+const GOSH_GRPC_CONTAINER: &str = "GOSH_GRPC_CONTAINER";
+static DISPATCHER_ENDL: &str = "endl";
+
 // TODO: trait
 
 #[derive(Debug, Default)]
@@ -45,7 +48,8 @@ impl GitRemoteProces {
             .args(args)
             .current_dir(&git_context_dir)
             .env("GIT_DIR", "/tmp/test/.git")
-            .env("GOSH_TRACE", "5")
+            .env(GOSH_GRPC_CONTAINER, "1")
+            // .env("GOSH_TRACE", "5")
             .stdin(Stdio::piped())
             .stdout(Stdio::piped())
             .stderr(Stdio::inherit())
@@ -72,27 +76,32 @@ impl GitRemoteProces {
         let mut reader = BufReader::new(stdout).lines();
         let input_line = String::from_utf8_lossy(&input).to_string();
         eprintln!("input:  {}", input_line);
-        if input_line.contains("fetch") {
-            self.process.wait().await?;
-            return Ok(vec![]);
-        }
+        let mut output = vec![];
         while let Some(line) = reader.next_line().await? {
             eprintln!("output:  {}", line);
-            return Ok(line.into());
+            if line.contains(DISPATCHER_ENDL) {
+                break;
+            }
+            output.push(line);
         }
+        let mut buffer = vec![];
+        for line in output {
+            buffer.append(&mut format!("{line}\n").as_bytes().to_vec());
+        }
+        return Ok(buffer);
         anyhow::bail!("Unexpected end of stdout")
     }
 
-    pub fn get_archive(&self) -> anyhow::Result<Vec<u8>> {
+    pub async fn get_archive(&self) -> anyhow::Result<Vec<u8>> {
         let mut archive_buf = Vec::new();
 
         {
             let encoder = zstd::stream::Encoder::new(&mut archive_buf, 0)?;
             let mut tar_builder = tar::Builder::new(encoder);
-            tar_builder.append_dir_all("", &self.git_context_dir)?;
+            tar_builder.append_dir_all("objects", "/tmp/test/.git/objects")?;
             tar_builder.finish()?;
         }
-
+        eprintln!("tar len: {}", archive_buf.len());
         Ok(archive_buf)
     }
 }
