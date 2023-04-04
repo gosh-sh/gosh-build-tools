@@ -68,9 +68,8 @@ impl GitRemoteGosh for GoshGrpc {
             _lock.get(&request.id)
         };
 
-        let mut git_remote_process = git_remote_process_arc.lock().await;
+        let git_remote_process = git_remote_process_arc.lock().await;
 
-        // TODO: stream?
         match git_remote_process.get_archive() {
             Ok(output) => return Ok(tonic::Response::new(GetArchiveResponse { body: output })),
             Err(error) => return Err(tonic::Status::internal(format!("{:?}", error))),
