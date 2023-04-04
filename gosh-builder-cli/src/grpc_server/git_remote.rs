@@ -39,9 +39,13 @@ impl GitRemoteProces {
             .join(".git-cache")
             .join(id.as_ref());
 
+        std::fs::create_dir_all(git_context_dir.to_str().unwrap()).unwrap();
+
         let process = tokio::process::Command::new("git-remote-gosh")
             .args(args)
             .current_dir(&git_context_dir)
+            .env("GIT_DIR", "/tmp/test/.git")
+            .env("GOSH_TRACE", "5")
             .stdin(Stdio::piped())
             .stdout(Stdio::piped())
             .stderr(Stdio::inherit())
@@ -66,8 +70,14 @@ impl GitRemoteProces {
             anyhow::bail!("Can't take stdout");
         };
         let mut reader = BufReader::new(stdout).lines();
-
+        let input_line = String::from_utf8_lossy(&input).to_string();
+        eprintln!("input:  {}", input_line);
+        if input_line.contains("fetch") {
+            self.process.wait().await?;
+            return Ok(vec![]);
+        }
         while let Some(line) = reader.next_line().await? {
+            eprintln!("output:  {}", line);
             return Ok(line.into());
         }
         anyhow::bail!("Unexpected end of stdout")
