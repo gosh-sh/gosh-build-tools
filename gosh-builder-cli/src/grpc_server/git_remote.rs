@@ -100,7 +100,8 @@ impl GitRemoteProces {
             let encoder = zstd::stream::Encoder::new(&mut archive_buf, 0)?;
             let mut tar_builder = tar::Builder::new(encoder);
             tar_builder.append_dir_all("objects", "/tmp/test/.git/objects")?;
-            tar_builder.finish()?;
+            // tar_builder.finish()?;
+            tar_builder.into_inner()?.finish()?;
         }
         eprintln!("tar len: {}", archive_buf.len());
         Ok(archive_buf)
