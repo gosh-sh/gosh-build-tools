@@ -42,7 +42,8 @@ impl GitRemoteProces {
             .join(".git-cache")
             .join(id.as_ref());
 
-        std::fs::create_dir_all(git_context_dir.to_str().unwrap()).unwrap();
+        std::fs::create_dir_all(git_context_dir.as_path())
+            .expect("create specific directories and their parents");
 
         let process = tokio::process::Command::new("git-remote-gosh")
             .args(args)
