@@ -1,5 +1,7 @@
 mod git_remote;
 
+use crate::sbom::Sbom;
+
 use self::git_remote::{GitRemotePool, GitRemoteProces};
 use gosh_builder_grpc_api::proto::{
     git_remote_gosh_server::{GitRemoteGosh, GitRemoteGoshServer},
@@ -13,6 +15,16 @@ use tonic::transport::Server;
 #[derive(Debug, Default)]
 pub struct GoshGrpc {
     pub gosh_remote_pool: Arc<Mutex<GitRemotePool>>,
+    pub sbom: Arc<Mutex<Sbom>>,
+}
+
+impl GoshGrpc {
+    fn new(sbom: Arc<Mutex<Sbom>>) -> Self {
+        Self {
+            sbom,
+            ..Default::default()
+        }
+    }
 }
 
 #[tonic::async_trait]
@@ -21,7 +33,10 @@ impl GitRemoteGosh for GoshGrpc {
         &self,
         grpc_request: tonic::Request<SpawnRequest>,
     ) -> Result<tonic::Response<SpawnResponse>, tonic::Status> {
+        eprintln!("gRPC: spawn");
         let request = grpc_request.into_inner();
+
+        self.sbom.lock().await.append(request.args.join(" "));
 
         let process = GitRemoteProces::spawn(&request.id, request.args).await;
         self.gosh_remote_pool
@@ -36,7 +51,7 @@ impl GitRemoteGosh for GoshGrpc {
         &self,
         grpc_request: tonic::Request<CommandRequest>,
     ) -> Result<tonic::Response<CommandResponse>, tonic::Status> {
-        eprintln!("Call received");
+        eprintln!("gRPC: command");
         let request = grpc_request.into_inner();
         eprintln!("Body {:?}", request.body);
         eprintln!(
@@ -61,6 +76,7 @@ impl GitRemoteGosh for GoshGrpc {
         &self,
         grpc_request: tonic::Request<GetArchiveRequest>,
     ) -> Result<tonic::Response<GetArchiveResponse>, tonic::Status> {
+        eprintln!("gRPC: get archive");
         let request = grpc_request.into_inner();
 
         let git_remote_process_arc = {
@@ -77,8 +93,8 @@ impl GitRemoteGosh for GoshGrpc {
     }
 }
 
-pub async fn run(address: SocketAddr) -> anyhow::Result<Box<dyn FnOnce()>> {
-    let grpc = GoshGrpc::default();
+pub async fn run(address: SocketAddr, sbom: Arc<Mutex<Sbom>>) -> anyhow::Result<Box<dyn FnOnce()>> {
+    let grpc = GoshGrpc::new(sbom);
 
     // for shutdown
     let (tx, rx) = tokio::sync::oneshot::channel::<()>();
@@ -88,7 +104,7 @@ pub async fn run(address: SocketAddr) -> anyhow::Result<Box<dyn FnOnce()>> {
         .add_service(GitRemoteGoshServer::new(grpc))
         .serve_with_shutdown(address, async move {
             rx.await.ok();
-            println!("gRPC reveived shutdown");
+            println!("gRPC received shutdown");
         });
 
     println!("gRPC ready");

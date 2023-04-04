@@ -3,3 +3,6 @@
 
 /target
 .idea
+
+/sbom.log
+/.git-cache

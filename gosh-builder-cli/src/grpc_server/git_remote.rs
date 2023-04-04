@@ -85,6 +85,7 @@ impl GitRemoteProces {
         let mut reader = BufReader::new(stdout).lines();
         let mut output = vec![];
         while let Some(line) = reader.next_line().await? {
+            eprintln!("Received output line: {:?}", &line);
             if line.contains(DISPATCHER_ENDL) {
                 break;
             }

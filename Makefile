@@ -12,6 +12,8 @@ run:
 gosh-ubuntu:
 	cd images && docker buildx build \
 		--progress=plain \
+		--no-cache \
+		--build-arg BRANCH=release-3.0.17 \
 		--tag gosh-ubuntu:22.04 \
 		.
 
