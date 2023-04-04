@@ -89,19 +89,16 @@ impl GitRemoteProces {
         for line in output {
             buffer.append(&mut format!("{line}\n").as_bytes().to_vec());
         }
-        return Ok(buffer);
-        anyhow::bail!("Unexpected end of stdout")
+        Ok(buffer)
     }
 
     pub async fn get_archive(&self) -> anyhow::Result<Vec<u8>> {
         let mut archive_buf = Vec::new();
 
         {
-            let encoder = zstd::stream::Encoder::new(&mut archive_buf, 0)?;
+            let encoder = zstd::stream::Encoder::new(&mut archive_buf, 0)?.auto_finish();
             let mut tar_builder = tar::Builder::new(encoder);
-            tar_builder.append_dir_all("objects", "/tmp/test/.git/objects")?;
-            // tar_builder.finish()?;
-            tar_builder.into_inner()?.finish()?;
+            tar_builder.append_dir_all("objects", &self.git_context_dir)?;
         }
         eprintln!("tar len: {}", archive_buf.len());
         Ok(archive_buf)

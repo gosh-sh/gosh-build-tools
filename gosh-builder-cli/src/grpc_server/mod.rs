@@ -77,7 +77,7 @@ impl GitRemoteGosh for GoshGrpc {
     }
 }
 
-pub async fn run(address: SocketAddr) -> anyhow::Result<Box<dyn FnOnce() -> ()>> {
+pub async fn run(address: SocketAddr) -> anyhow::Result<Box<dyn FnOnce()>> {
     let grpc = GoshGrpc::default();
 
     // for shutdown
