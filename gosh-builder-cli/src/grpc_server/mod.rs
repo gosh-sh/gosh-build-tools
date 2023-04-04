@@ -1,52 +1,57 @@
 mod git_remote;
 
-use self::git_remote::{GitRemotePool, GitRemoteProcess};
+use self::git_remote::{GitRemotePool, GitRemoteProces};
 use gosh_builder_grpc_api::proto::{
     git_remote_gosh_server::{GitRemoteGosh, GitRemoteGoshServer},
     CommandRequest, CommandResponse, GetArchiveRequest, GetArchiveResponse, SpawnRequest,
     SpawnResponse,
 };
-use std::{cell::RefCell, net::SocketAddr};
+use std::{net::SocketAddr, sync::Arc};
 use tokio::sync::Mutex;
 use tonic::transport::Server;
 
 #[derive(Debug, Default)]
 pub struct GoshGrpc {
-    pub gosh_remote_pool: Mutex<RefCell<GitRemotePool>>,
+    pub gosh_remote_pool: Arc<Mutex<GitRemotePool>>,
 }
 
 #[tonic::async_trait]
 impl GitRemoteGosh for GoshGrpc {
     async fn spawn(
         &self,
-        request: tonic::Request<SpawnRequest>,
+        grpc_request: tonic::Request<SpawnRequest>,
     ) -> Result<tonic::Response<SpawnResponse>, tonic::Status> {
-        todo!()
+        let request = grpc_request.into_inner();
+
+        let process = GitRemoteProces::spawn(&request.id, request.args);
+        self.gosh_remote_pool
+            .lock()
+            .await
+            .insert(&request.id, process);
+
+        Ok(tonic::Response::new(SpawnResponse::default()))
     }
 
     async fn command(
         &self,
-        request: tonic::Request<CommandRequest>,
+        grpc_request: tonic::Request<CommandRequest>,
     ) -> Result<tonic::Response<CommandResponse>, tonic::Status> {
         eprintln!("Call received");
-        let r = request.into_inner();
-        eprintln!("Body {:?}", r.body);
+        let request = grpc_request.into_inner();
+        eprintln!("Body {:?}", request.body);
         eprintln!(
             "Body try string {:?}",
-            String::from_utf8(r.body.clone()).unwrap()
+            String::from_utf8(request.body.clone()).unwrap()
         );
 
-        let arc_git_remote_process = self
-            .gosh_remote_pool
-            .lock()
-            .await
-            .get_mut()
-            .get_process(&r.id)
-            .clone();
+        let git_remote_process_arc = {
+            let mut _lock = self.gosh_remote_pool.lock().await;
+            _lock.get(&request.id)
+        };
 
-        let git_remote_process = arc_git_remote_process.lock().await;
+        let mut git_remote_process = git_remote_process_arc.lock().await;
 
-        match git_remote_process.call("test".into()).await {
+        match git_remote_process.command(request.body).await {
             Ok(output) => return Ok(tonic::Response::new(CommandResponse { body: output })),
             Err(error) => return Err(tonic::Status::internal(format!("{:?}", error))),
         }
@@ -54,9 +59,22 @@ impl GitRemoteGosh for GoshGrpc {
 
     async fn get_archive(
         &self,
-        request: tonic::Request<GetArchiveRequest>,
+        grpc_request: tonic::Request<GetArchiveRequest>,
     ) -> Result<tonic::Response<GetArchiveResponse>, tonic::Status> {
-        todo!()
+        let request = grpc_request.into_inner();
+
+        let git_remote_process_arc = {
+            let mut _lock = self.gosh_remote_pool.lock().await;
+            _lock.get(&request.id)
+        };
+
+        let mut git_remote_process = git_remote_process_arc.lock().await;
+
+        // TODO: stream?
+        match git_remote_process.get_archive() {
+            Ok(output) => return Ok(tonic::Response::new(GetArchiveResponse { body: output })),
+            Err(error) => return Err(tonic::Status::internal(format!("{:?}", error))),
+        }
     }
 }
 

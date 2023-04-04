@@ -20,3 +20,4 @@ serde_yaml = "0.9.19"
 tokio = { version = "1.26.0", features = ["full"] }
 gosh-builder-grpc-api = { path = "../gosh-builder-grpc-api/" }
 tonic = "0.8.3"
+bytes = "1.4.0"

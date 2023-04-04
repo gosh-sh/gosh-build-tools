@@ -463,6 +463,7 @@ name = "gosh-builder-cli"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "bytes",
  "clap",
  "gosh-builder-grpc-api",
  "hyper",
