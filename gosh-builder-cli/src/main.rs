@@ -35,7 +35,11 @@ async fn main() -> anyhow::Result<()> {
         let gosh_builder = GoshBuilder {
             config: gosh_config,
         };
-        gosh_builder.run().await;
+
+        gosh_builder
+            .run()
+            .await
+            .expect("image build successful finish");
 
         println!("End build...");
     })

@@ -24,6 +24,9 @@ impl GoshConfig {
             }
         };
         builder.tag(raw_config.tag);
+        if let Some(ref args) = raw_config.args {
+            builder.args(args.clone());
+        };
         builder.build().expect("gosh config builder")
     }
 }
