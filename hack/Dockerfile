@@ -6,7 +6,5 @@ ENV GOSH_GRPC_ENABLE=1
 
 WORKDIR /workdir
 
-RUN git clone gosh://0:d87a6864dd5771d14f36fdd967cfe8599c878ff497d837adeae2079cb5285e0e/awnion/_index
-RUN git clone gosh://0:18fae8e25d9ffea2b0875646398efe00361805b371ce61216a053af161a3a30e/awnion/aoc2022
-
-# RUN wget http://google.com
+RUN git clone gosh://0:8b1cbcd8b08a6c384e0db0d3513898d36203fced3e141a7f6b99cc580738fc22/awnion/_index
+RUN git clone gosh://0:8b1cbcd8b08a6c384e0db0d3513898d36203fced3e141a7f6b99cc580738fc22/awnion/aoc2022
