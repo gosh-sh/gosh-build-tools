@@ -2,5 +2,6 @@
 
 members = [
     "gosh-builder-cli",
+    "gosh-builder-config",
     "gosh-builder-grpc-api",
 ]

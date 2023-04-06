@@ -1,8 +1,11 @@
-mod builder;
 mod cli;
+mod docker_builder;
 mod grpc_server;
 mod sbom;
 
+use crate::docker_builder::ImageBuilder;
+use crate::{docker_builder::GoshBuilder, sbom::Sbom};
+use gosh_builder_config::GoshConfig;
 use std::{
     fs::File,
     io::Write,
@@ -11,15 +14,12 @@ use std::{
 };
 use tokio::{io::AsyncReadExt, sync::Mutex};
 
-use crate::sbom::Sbom;
-
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
     let cli_settings = cli::settings()?;
     println!("{:?}", cli_settings);
 
-    let build_config = builder::config::parse(&cli_settings.config_path)?;
-    println!("{:?}", build_config);
+    let gosh_config = GoshConfig::from_file(&cli_settings.config_path, &cli_settings.workdir);
 
     let sbom = Arc::new(Mutex::new(Sbom::default()));
 
@@ -27,14 +27,15 @@ async fn main() -> anyhow::Result<()> {
     let grpc_socker_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 8000);
     let stop_grpc_server = grpc_server::run(grpc_socker_addr, sbom.clone()).await?;
 
-    let dockerfile_path =
-        builder::config::clean_dockerfile_path(&build_config.docker_file, &cli_settings.workdir)?;
-    println!("Dockerfile {:?}", dockerfile_path);
+    println!("Dockerfile {:?}", gosh_config.dockerfile);
 
     tokio::spawn(async move {
         println!("Start build...");
 
-        builder::run(&cli_settings.workdir, &dockerfile_path).await;
+        let gosh_builder = GoshBuilder {
+            config: gosh_config,
+        };
+        gosh_builder.run().await;
 
         println!("End build...");
     })
