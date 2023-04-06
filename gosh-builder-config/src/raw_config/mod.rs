@@ -21,6 +21,9 @@ pub struct RawGoshConfig {
     pub dockerfile: Dockerfile,
 
     #[serde(skip_serializing_if = "Option::is_none")]
+    pub tag: Option<String>,
+
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub args: Option<HashMap<String, String>>,
 }
 

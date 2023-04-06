@@ -4,6 +4,7 @@ use std::{collections::HashMap, path::Path};
 #[derive(Builder, Debug, Clone)]
 pub struct GoshConfig {
     pub dockerfile: String,
+    pub tag: Option<String>,
     pub args: HashMap<String, String>,
 }
 
@@ -22,6 +23,7 @@ impl GoshConfig {
                 builder.dockerfile(content)
             }
         };
+        builder.tag(raw_config.tag);
         builder.build().expect("gosh config builder")
     }
 }

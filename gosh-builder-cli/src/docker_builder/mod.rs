@@ -21,9 +21,19 @@ impl ImageBuilder for GoshBuilder {
         command.arg("buildx").arg("build");
         command.arg("--progress=plain");
         command.arg("--no-cache");
-        command.arg("--network=host");
+        command.arg("--network=host"); // TODO: fix network access
         command.arg("--file").arg("-"); // use stdin
-        command.arg("--tag").arg("gosh-build"); // TODO
+        if let Some(ref tag) = self.config.tag {
+            command.arg("--tag").arg(tag);
+        }
+
+        // !WARNING! potential security breach
+        // self.config.args should be filtered before used
+        // e.g. proxy settings
+
+        for (key, value) in &self.config.args {
+            command.arg(key).arg(value);
+        }
         command
             .arg("--build-arg")
             .arg("http_proxy=http://127.0.0.1:8000");

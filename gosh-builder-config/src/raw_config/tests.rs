@@ -31,6 +31,7 @@ fn test2() {
 fn test3() {
     let obj = RawGoshConfig {
         dockerfile: Dockerfile::Content("FROM ubuntu".into()),
+        tag: None,
         args: None,
     };
 
@@ -38,6 +39,8 @@ fn test3() {
 
     let res = RawGoshConfig::try_from(yaml.as_str()).expect("parse yaml");
     assert_eq!(res.dockerfile, Dockerfile::Content("FROM ubuntu".into()));
+    assert_eq!(res.args, None);
+    assert_eq!(res.tag, None);
 }
 
 #[test]
@@ -47,6 +50,7 @@ fn test4() {
             path: test/path.yaml
         args:
             arg1: value-2
+        tag: test_tag
     "#;
     let res = RawGoshConfig::try_from(yaml).expect("parse yaml");
     assert_eq!(
@@ -56,4 +60,5 @@ fn test4() {
         }
     );
     assert_eq!(res.args.unwrap().get("arg1").unwrap(), "value-2");
+    assert_eq!(res.tag.unwrap(), "test_tag");
 }
