@@ -30,10 +30,9 @@ impl GitRemotePool {
 
 #[derive(Debug)]
 pub struct GitRemoteProces {
-    id: String,
-    git_context_dir: PathBuf,
-    process: Child,
-    git_dir: PathBuf,
+    pub id: String,
+    pub process: Child,
+    pub git_dir: PathBuf,
 }
 
 impl GitRemoteProces {
@@ -66,7 +65,6 @@ impl GitRemoteProces {
 
         Self {
             id: id.as_ref().to_owned(),
-            git_context_dir,
             process,
             git_dir,
         }

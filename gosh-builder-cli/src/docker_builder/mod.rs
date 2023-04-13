@@ -10,8 +10,6 @@ pub trait ImageBuilder {
 #[derive(Debug, Clone)]
 pub struct GoshBuilder {
     pub config: GoshConfig,
-    // workdir: PathBuf,
-    // docker_file_path: PathBuf,
 }
 
 #[async_trait::async_trait]
@@ -22,7 +20,6 @@ impl ImageBuilder for GoshBuilder {
         command.arg("--progress=plain");
         command.arg("--no-cache");
         command.arg("--network=host"); // TODO: fix network access
-        command.arg("--file").arg("-"); // use stdin
         if let Some(ref tag) = self.config.tag {
             command.arg("--tag").arg(tag);
         }
@@ -41,6 +38,7 @@ impl ImageBuilder for GoshBuilder {
             .arg("--build-arg")
             .arg("https_proxy=http://127.0.0.1:8000");
 
+        command.arg("-"); // use stdin
         println!("{:?}", command);
 
         let mut process = command.stdin(Stdio::piped()).spawn()?;
@@ -48,6 +46,7 @@ impl ImageBuilder for GoshBuilder {
         let Some(ref mut stdin) = process.stdin else {
             anyhow::bail!("Can't take stdin");
         };
+        println!("{:?}", self.config.dockerfile);
         stdin.write_all(self.config.dockerfile.as_bytes()).await?;
         stdin.flush().await?;
 

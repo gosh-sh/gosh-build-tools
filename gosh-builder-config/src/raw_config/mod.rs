@@ -2,11 +2,7 @@
 mod tests;
 
 use serde::{Deserialize, Serialize};
-use std::{
-    collections::HashMap,
-    fs::File,
-    path::{Path, PathBuf},
-};
+use std::{collections::HashMap, fs::File, path::Path};
 
 #[derive(Serialize, Deserialize, Debug, PartialEq)]
 #[serde(rename_all = "lowercase")]
@@ -46,15 +42,4 @@ impl RawGoshConfig {
 
         Ok(serde_yaml::from_reader(File::open(config_path)?)?)
     }
-}
-
-pub fn clean_dockerfile_path<D>(raw_dockerfile_path: &str, workdir: D) -> anyhow::Result<PathBuf>
-where
-    D: AsRef<Path>,
-{
-    let mut path = PathBuf::from(raw_dockerfile_path);
-    if !path.is_absolute() {
-        path = workdir.as_ref().join(path);
-    }
-    Ok(path)
 }
