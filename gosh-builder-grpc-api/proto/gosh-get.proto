@@ -1,0 +1,16 @@
+syntax = "proto3";
+package builder;
+
+service GoshGet {
+  // TODO: streaming response
+  rpc Commit(CommitRequest) returns (CommitResponse);
+  rpc File(FileRequest) returns (FileResponse);
+}
+
+message CommitRequest { string id = 1; }
+
+message CommitResponse { string id = 1; }
+
+message FileRequest { string id = 1; }
+
+message FileResponse { string id = 1; }

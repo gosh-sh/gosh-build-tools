@@ -1,13 +1,11 @@
-use std::io::Result;
-
-fn main() -> Result<()> {
-    tonic_build::compile_protos("proto/builder.proto")?;
-
-    // or
-
-    // tonic_build::configure()
-    //     .build_client(true)
-    //     .build_server(true)
-    //     .compile(&["proto/builder.proto"], &["proto"])?;
-    Ok(())
+fn main() {
+    tonic_build::configure()
+        .compile(
+            &["proto/gosh-get.proto", "proto/git-remote-gosh.proto"],
+            &["proto"],
+        )
+        .unwrap_or_else(|e| {
+            eprintln!("{}", e);
+            std::process::exit(1);
+        });
 }
