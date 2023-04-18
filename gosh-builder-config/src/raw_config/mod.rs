@@ -38,7 +38,7 @@ impl RawGoshConfig {
     {
         let config_path = config_path.as_ref();
 
-        println!("Read config from file {:?}", config_path);
+        tracing::info!("Read configfile: {:?}", config_path);
 
         Ok(serde_yaml::from_reader(File::open(config_path)?)?)
     }
