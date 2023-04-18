@@ -21,13 +21,15 @@ struct Args {
 
 pub fn settings() -> anyhow::Result<CliSettings> {
     let args = Args::parse();
-    println!("{:?}", args);
+    tracing::debug!("Args {:?}", args);
 
     let mut gosh_configfile = PathBuf::from(args.config);
     if !gosh_configfile.exists() {
         panic!("Gosh config path doesn't exist");
     }
-    gosh_configfile.canonicalize().expect("canonicalizable");
+    gosh_configfile
+        .canonicalize()
+        .expect("gosh configfile path canonicalize");
 
     if !gosh_configfile.is_absolute() {
         gosh_configfile = std::env::current_dir()?.join(gosh_configfile);

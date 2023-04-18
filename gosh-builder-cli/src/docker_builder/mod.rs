@@ -2,6 +2,8 @@ use gosh_builder_config::GoshConfig;
 use std::process::Stdio;
 use tokio::{io::AsyncWriteExt, process::Command};
 
+use crate::tracing_pipe::MapPerLine;
+
 #[async_trait::async_trait]
 pub trait ImageBuilder {
     async fn run(&self) -> anyhow::Result<()>;
@@ -39,14 +41,30 @@ impl ImageBuilder for GoshBuilder {
             .arg("https_proxy=http://127.0.0.1:8000");
 
         command.arg("-"); // use stdin
-        println!("{:?}", command);
+        tracing::debug!("{:?}", command);
 
-        let mut process = command.stdin(Stdio::piped()).spawn()?;
+        let mut process = command
+            .stdin(Stdio::piped())
+            // .stdout(Stdio::piped())
+            // .stderr(Stdio::piped())
+            .spawn()?;
+
+        // TODO: make it optional via envs
+        // if stdout/stderr are piped we redirect them to tracing
+        process
+            .stdout
+            .take()
+            .map(|io| io.map_per_line(|line| tracing::info!("{}", line)));
+
+        process
+            .stderr
+            .take()
+            .map(|io| io.map_per_line(|line| tracing::info!("{}", line)));
 
         let Some(ref mut stdin) = process.stdin else {
             anyhow::bail!("Can't take stdin");
         };
-        println!("{:?}", self.config.dockerfile);
+        tracing::debug!("{:?}", self.config.dockerfile);
         stdin.write_all(self.config.dockerfile.as_bytes()).await?;
         stdin.flush().await?;
 

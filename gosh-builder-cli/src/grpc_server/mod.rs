@@ -19,20 +19,20 @@ pub async fn run(address: SocketAddr, sbom: Arc<Mutex<Sbom>>) -> anyhow::Result<
     // for shutdown
     let (tx, rx) = tokio::sync::oneshot::channel::<()>();
 
-    println!("Start gRPC");
+    tracing::info!("Start gRPC");
     let server = Server::builder()
         .add_service(GitRemoteGoshServer::new(git_remote_gosh_service))
         .add_service(GoshGetServer::new(gosh_get_service))
         .serve_with_shutdown(address, async move {
             rx.await.ok();
-            println!("gRPC received shutdown");
+            tracing::info!("gRPC received shutdown");
         });
 
-    println!("gRPC ready");
+    tracing::info!("gRPC ready");
 
     tokio::spawn(async move {
         server.await.ok();
-        println!("gRPC stopped");
+        tracing::info!("gRPC stopped");
     });
 
     Ok(Box::new(move || {

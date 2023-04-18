@@ -2,6 +2,7 @@ mod cli;
 mod docker_builder;
 mod grpc_server;
 mod sbom;
+mod tracing_pipe;
 
 use crate::docker_builder::ImageBuilder;
 use crate::{docker_builder::GoshBuilder, sbom::Sbom};
@@ -16,8 +17,18 @@ use tokio::{io::AsyncReadExt, sync::Mutex};
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
+    tracing_subscriber::fmt()
+        .with_env_filter(tracing_subscriber::EnvFilter::from_default_env())
+        .event_format(
+            tracing_subscriber::fmt::format()
+                .without_time()
+                .with_ansi(true)
+                .with_source_location(false), // .with_target(false),
+        )
+        .init();
+
     let cli_settings = cli::settings()?;
-    println!("{:?}", cli_settings);
+    tracing::debug!("{:?}", cli_settings);
 
     let gosh_config = GoshConfig::from_file(&cli_settings.config_path, &cli_settings.workdir);
 
@@ -27,10 +38,10 @@ async fn main() -> anyhow::Result<()> {
     let grpc_socker_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 8000);
     let stop_grpc_server = grpc_server::run(grpc_socker_addr, sbom.clone()).await?;
 
-    println!("Dockerfile {:?}", gosh_config.dockerfile);
+    tracing::debug!("Dockerfile {:?}", gosh_config.dockerfile);
 
     tokio::spawn(async move {
-        println!("Start build...");
+        tracing::info!("Start build...");
 
         let gosh_builder = GoshBuilder {
             config: gosh_config,
@@ -41,7 +52,7 @@ async fn main() -> anyhow::Result<()> {
             .await
             .expect("image build successful finish");
 
-        println!("End build...");
+        tracing::info!("End build...");
     })
     .await
     .unwrap();
@@ -49,13 +60,16 @@ async fn main() -> anyhow::Result<()> {
     println!("Press any key...");
     tokio::io::stdin().read_u8().await?;
 
+    tracing::info!("Stoping build server...");
     stop_grpc_server();
 
+    tracing::info!("Writing SBOM...");
     let mut sbom_file = File::create("sbom.log")?;
     for s in sbom.lock().await.inner.iter() {
         writeln!(sbom_file, "{}", s)?;
     }
     sbom_file.flush()?;
+    tracing::info!("SBOM's ready");
 
     Ok(())
 }

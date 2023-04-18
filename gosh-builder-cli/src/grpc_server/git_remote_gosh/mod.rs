@@ -30,7 +30,7 @@ impl GitRemoteGosh for GitRemoteGoshService {
         &self,
         grpc_request: tonic::Request<SpawnRequest>,
     ) -> Result<tonic::Response<SpawnResponse>, tonic::Status> {
-        eprintln!("gRPC: spawn");
+        tracing::debug!("gRPC: spawn");
         let request = grpc_request.into_inner();
 
         self.sbom.lock().await.append(request.args.join(" "));
@@ -48,12 +48,12 @@ impl GitRemoteGosh for GitRemoteGoshService {
         &self,
         grpc_request: tonic::Request<CommandRequest>,
     ) -> Result<tonic::Response<CommandResponse>, tonic::Status> {
-        eprintln!("gRPC: command");
+        tracing::debug!("gRPC: command");
         let request = grpc_request.into_inner();
-        eprintln!("Body {:?}", request.body);
-        eprintln!(
+        tracing::trace!("Body {:?}", request.body);
+        tracing::trace!(
             "Body try string {:?}",
-            String::from_utf8(request.body.clone()).unwrap()
+            String::from_utf8(request.body.clone()).unwrap(),
         );
 
         let git_remote_process_arc = {
@@ -73,7 +73,7 @@ impl GitRemoteGosh for GitRemoteGoshService {
         &self,
         grpc_request: tonic::Request<GetArchiveRequest>,
     ) -> Result<tonic::Response<GetArchiveResponse>, tonic::Status> {
-        eprintln!("gRPC: get archive");
+        tracing::debug!("gRPC: get archive");
         let request = grpc_request.into_inner();
 
         let git_remote_process_arc = {
