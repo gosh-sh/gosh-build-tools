@@ -1,5 +1,23 @@
 # syntax=docker/dockerfile:1.5.2
 
+FROM rust:1.68-bullseye as rust-builder
+
+RUN apt-get update && apt-get install -yq \
+    build-essential \
+    protobuf-compiler
+
+FROM rust-builder as gosh-get-build
+
+WORKDIR /workdir
+RUN \
+    --mount=type=cache,target=/usr/local/cargo/registry \
+    --mount=type=cache,target=/usr/local/cargo/git \
+    --mount=type=cache,target=/target \
+    --mount=type=bind,target=./ \
+    cargo install \
+    --path ./gosh-get/ \
+    --target-dir=/target
+
 FROM ubuntu:22.04
 
 RUN apt update && apt install -y jq ca-certificates git wget libssl3 libc6 curl
@@ -40,3 +58,5 @@ RUN <<EOF
     cd test
     git init
 EOF
+
+COPY --link --from=gosh-get-build /usr/local/cargo/bin/gosh-get /usr/local/bin/gosh-get

@@ -2,8 +2,8 @@ use crate::sbom::Sbom;
 use gosh_builder_grpc_api::proto::{
     gosh_get_server::GoshGet, CommitRequest, CommitResponse, FileRequest, FileResponse,
 };
-use std::{path::PathBuf, sync::Arc};
-use tokio::sync::Mutex;
+use std::{path::PathBuf, process::Stdio, sync::Arc};
+use tokio::{io::AsyncReadExt, sync::Mutex};
 
 #[derive(Debug, Default)]
 pub struct GoshGetService {
@@ -60,21 +60,25 @@ async fn get_commit(gosh_url: impl AsRef<str>, commit: impl AsRef<str>) -> anyho
         .await
         .expect("git clone");
 
-    let _ = tokio::process::Command::new("git")
-        .arg("checkout")
+    let mut process = tokio::process::Command::new("git")
+        .arg("archive")
+        .arg("--format=tar")
         .arg(commit.as_ref())
         .current_dir(&git_context_dir)
-        .status()
-        .await
-        .expect("git clone");
+        .stdout(Stdio::piped())
+        .spawn()?;
 
-    // let _ = tokio::process::Command::new("git")
-    //     .arg("checkout")
-    //     .arg(commit.as_ref())
-    //     .current_dir(&git_context_dir)
-    //     .status()
-    //     .await
-    //     .expect("git clone");
+    let mut stdout = process.stdout.take().expect("stdout intercepted");
 
-    todo!()
+    let mut res = Vec::new();
+    let mut res2 = Vec::new();
+
+    stdout.read_to_end(&mut res).await?;
+
+    let cursor = std::io::Cursor::new(res);
+    zstd::stream::copy_encode(cursor, &mut res2, 0)?;
+
+    process.wait().await?;
+
+    Ok(res2)
 }

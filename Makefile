@@ -4,17 +4,30 @@ PROXY_IP ?= 127.0.0.1
 PROXY_PORT ?= 8000
 
 .PHONY: run
-run:
-	cargo run -- --config hack/Gosh.yaml
+run: gosh-ubuntu
+	cargo run --bin gosh-builder-cli -- --config hack/Gosh.yaml
+
+
+.PHONY: debug
+debug: gosh-ubuntu
+	RUST_LOG=info,gosh_builder_cli=debug cargo run --bin gosh-builder-cli -- --config hack/Gosh.yaml
+
+.PHONY: trace
+trace: gosh-ubuntu
+	RUST_LOG=info,gosh_builder_cli=trace run --bin gosh-builder-cli -- --config hack/Gosh.yaml
 
 .PHONY: gosh-ubuntu
-gosh-ubuntu:
-	cd images && docker buildx build \
+gosh-ubuntu: pb
+	docker buildx build \
 		--progress=plain \
-		--no-cache \
-		--build-arg BRANCH=release-3.0.17 \
+		--build-arg BRANCH=dev \
 		--tag gosh-ubuntu:22.04 \
+		--file images/Dockerfile \
 		.
+
+.PHONY: pb
+pb:
+	cd gosh-builder-grpc-api && cargo build
 
 .PHONY: clear
 clear:

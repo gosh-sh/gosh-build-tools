@@ -13,7 +13,7 @@ use std::{
     net::{IpAddr, Ipv4Addr, SocketAddr},
     sync::Arc,
 };
-use tokio::{io::AsyncReadExt, sync::Mutex};
+use tokio::sync::Mutex;
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
@@ -23,7 +23,7 @@ async fn main() -> anyhow::Result<()> {
             tracing_subscriber::fmt::format()
                 .without_time()
                 .with_ansi(true)
-                .with_source_location(false), // .with_target(false),
+                .with_source_location(false),
         )
         .init();
 
@@ -57,8 +57,11 @@ async fn main() -> anyhow::Result<()> {
     .await
     .unwrap();
 
-    println!("Press any key...");
-    tokio::io::stdin().read_u8().await?;
+    // {
+    //     use tokio::io::AsyncBufReadExt;
+    //     println!("Press any key...");
+    //     tokio::io::stdin().read_u8().await?;
+    // }
 
     tracing::info!("Stoping build server...");
     stop_grpc_server();
