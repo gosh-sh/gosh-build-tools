@@ -1,16 +1,26 @@
 syntax = "proto3";
 package builder;
 
+// TODO reimplement it with streaming capabilities
+// see:
+// https://github.com/hyperium/tonic/blob/master/examples/routeguide-tutorial.md#server-side-streaming-rpc
+
 service GoshGet {
-  // TODO: streaming response
   rpc Commit(CommitRequest) returns (CommitResponse);
   rpc File(FileRequest) returns (FileResponse);
 }
 
-message CommitRequest { string id = 1; }
+message CommitRequest {
+  string gosh_url = 1;
+  string commit = 2;
+}
 
-message CommitResponse { string id = 1; }
+message CommitResponse { bytes body = 1; }
 
-message FileRequest { string id = 1; }
+message FileRequest {
+  string gosh_url = 1;
+  string commit = 2;
+  string path = 3;
+}
 
-message FileResponse { string id = 1; }
+message FileResponse { bytes body = 1; }
