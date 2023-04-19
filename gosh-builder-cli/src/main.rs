@@ -1,6 +1,7 @@
 mod cli;
 mod docker_builder;
 mod grpc_server;
+mod log;
 mod sbom;
 mod tracing_pipe;
 
@@ -17,15 +18,7 @@ use tokio::sync::Mutex;
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
-    tracing_subscriber::fmt()
-        .with_env_filter(tracing_subscriber::EnvFilter::from_default_env())
-        .event_format(
-            tracing_subscriber::fmt::format()
-                .without_time()
-                .with_ansi(true)
-                .with_source_location(false),
-        )
-        .init();
+    log::init();
 
     let cli_settings = cli::settings()?;
     tracing::debug!("{:?}", cli_settings);

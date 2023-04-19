@@ -19,7 +19,7 @@ trace: gosh-ubuntu
 .PHONY: gosh-ubuntu
 gosh-ubuntu: pb
 	docker buildx build \
-		--progress=plain \
+		` # --progress=plain ` \
 		--build-arg BRANCH=dev \
 		--tag gosh-ubuntu:22.04 \
 		--file images/Dockerfile \

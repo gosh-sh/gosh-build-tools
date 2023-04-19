@@ -1,4 +1,4 @@
-use crate::sbom::Sbom;
+use crate::{sbom::Sbom, tracing_pipe::MapPerLine};
 use gosh_builder_grpc_api::proto::{
     gosh_get_server::GoshGet, CommitRequest, CommitResponse, FileRequest, FileResponse,
 };
@@ -51,14 +51,26 @@ async fn get_commit(gosh_url: impl AsRef<str>, commit: impl AsRef<str>) -> anyho
     std::fs::create_dir_all(&git_context_dir)
         .expect("create specific directories and their parents");
 
-    let _ = tokio::process::Command::new("git")
+    let mut git_clone_process = tokio::process::Command::new("git")
         .arg("clone")
         .arg(gosh_url.as_ref())
         .arg(".") // clone into current dir
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped())
         .current_dir(&git_context_dir)
-        .status()
-        .await
-        .expect("git clone");
+        .spawn()?;
+
+    git_clone_process
+        .stdout
+        .take()
+        .map(|io| io.map_per_line(|line| tracing::debug!("{}", line)));
+
+    git_clone_process
+        .stderr
+        .take()
+        .map(|io| io.map_per_line(|line| tracing::debug!("{}", line)));
+
+    git_clone_process.wait().await?;
 
     let mut process = tokio::process::Command::new("git")
         .arg("archive")
@@ -66,7 +78,13 @@ async fn get_commit(gosh_url: impl AsRef<str>, commit: impl AsRef<str>) -> anyho
         .arg(commit.as_ref())
         .current_dir(&git_context_dir)
         .stdout(Stdio::piped())
+        .stderr(Stdio::piped())
         .spawn()?;
+
+    process
+        .stderr
+        .take()
+        .map(|io| io.map_per_line(|line| tracing::debug!("{}", line)));
 
     let mut stdout = process.stdout.take().expect("stdout intercepted");
 

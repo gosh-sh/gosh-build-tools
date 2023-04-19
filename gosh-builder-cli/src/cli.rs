@@ -21,7 +21,7 @@ struct Args {
 
 pub fn settings() -> anyhow::Result<CliSettings> {
     let args = Args::parse();
-    tracing::debug!("Args {:?}", args);
+    tracing::debug!("{:?}", args);
 
     let mut gosh_configfile = PathBuf::from(args.config);
     if !gosh_configfile.exists() {
