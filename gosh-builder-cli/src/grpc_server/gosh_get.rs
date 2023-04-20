@@ -1,9 +1,9 @@
-use crate::{sbom::Sbom, tracing_pipe::MapPerLine};
+use crate::{sbom::Sbom, tracing_pipe::MapPerLine, zstd::ZstdReadToEnd};
 use gosh_builder_grpc_api::proto::{
     gosh_get_server::GoshGet, CommitRequest, CommitResponse, FileRequest, FileResponse,
 };
 use std::{path::PathBuf, process::Stdio, sync::Arc};
-use tokio::{io::AsyncReadExt, sync::Mutex};
+use tokio::sync::Mutex;
 
 #[derive(Debug, Default)]
 pub struct GoshGetService {
@@ -25,10 +25,17 @@ impl GoshGet for GoshGetService {
         &self,
         grpc_request: tonic::Request<CommitRequest>,
     ) -> std::result::Result<tonic::Response<CommitResponse>, tonic::Status> {
-        let result = grpc_request.into_inner();
+        let request = grpc_request.into_inner();
 
-        match get_commit(result.gosh_url, result.commit).await {
-            Ok(body) => return Ok(tonic::Response::new(CommitResponse { body })),
+        match get_commit(&request.gosh_url, &request.commit).await {
+            Ok(body) => {
+                // TODO: (maybe?) convert request.commit to canonical hash
+                self.sbom
+                    .lock()
+                    .await
+                    .append(format!("{} {}", &request.gosh_url, &request.commit));
+                return Ok(tonic::Response::new(CommitResponse { body }));
+            }
             Err(error) => return Err(tonic::Status::internal(format!("{:?}", error))),
         }
     }
@@ -36,8 +43,19 @@ impl GoshGet for GoshGetService {
         &self,
         grpc_request: tonic::Request<FileRequest>,
     ) -> std::result::Result<tonic::Response<FileResponse>, tonic::Status> {
-        let _result = grpc_request.into_inner();
-        todo!()
+        let request = grpc_request.into_inner();
+
+        match get_file(&request.gosh_url, &request.commit, &request.path).await {
+            Ok(body) => {
+                // TODO: (maybe?) convert request.commit to canonical hash
+                self.sbom.lock().await.append(format!(
+                    "{} {} {}",
+                    &request.gosh_url, &request.commit, &request.path
+                ));
+                return Ok(tonic::Response::new(FileResponse { body }));
+            }
+            Err(error) => return Err(tonic::Status::internal(format!("{:?}", error))),
+        }
     }
 }
 
@@ -72,7 +90,7 @@ async fn get_commit(gosh_url: impl AsRef<str>, commit: impl AsRef<str>) -> anyho
 
     git_clone_process.wait().await?;
 
-    let mut process = tokio::process::Command::new("git")
+    let mut git_archive_process = tokio::process::Command::new("git")
         .arg("archive")
         .arg("--format=tar")
         .arg(commit.as_ref())
@@ -81,22 +99,29 @@ async fn get_commit(gosh_url: impl AsRef<str>, commit: impl AsRef<str>) -> anyho
         .stderr(Stdio::piped())
         .spawn()?;
 
-    process
+    git_archive_process
         .stderr
         .take()
         .map(|io| io.map_per_line(|line| tracing::debug!("{}", line)));
 
-    let mut stdout = process.stdout.take().expect("stdout intercepted");
+    let Some(stdout) = git_archive_process.stdout.take() else {
+        tracing::error!("unable to take STDOUT: id={}", &id);
+        anyhow::bail!("internal error");
+    };
 
-    let mut res = Vec::new();
-    let mut res2 = Vec::new();
+    let zstd_body = stdout.zstd_read_to_end().await?;
 
-    stdout.read_to_end(&mut res).await?;
+    if git_archive_process.wait().await?.success() {
+        Ok(zstd_body)
+    } else {
+        anyhow::bail!("git-archive process failed")
+    }
+}
 
-    let cursor = std::io::Cursor::new(res);
-    zstd::stream::copy_encode(cursor, &mut res2, 0)?;
-
-    process.wait().await?;
-
-    Ok(res2)
+async fn get_file(
+    _gosh_url: impl AsRef<str>,
+    _commit: impl AsRef<str>,
+    _file_path: impl AsRef<str>,
+) -> anyhow::Result<Vec<u8>> {
+    todo!()
 }

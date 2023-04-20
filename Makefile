@@ -7,7 +7,6 @@ PROXY_PORT ?= 8000
 run: gosh-ubuntu
 	cargo run --bin gosh-builder-cli -- --config hack/Gosh.yaml
 
-
 .PHONY: debug
 debug: gosh-ubuntu
 	RUST_LOG=info,gosh_builder_cli=debug cargo run --bin gosh-builder-cli -- --config hack/Gosh.yaml

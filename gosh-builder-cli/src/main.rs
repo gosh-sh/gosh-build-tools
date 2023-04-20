@@ -4,6 +4,7 @@ mod grpc_server;
 mod log;
 mod sbom;
 mod tracing_pipe;
+pub mod zstd;
 
 use crate::docker_builder::ImageBuilder;
 use crate::{docker_builder::GoshBuilder, sbom::Sbom};
