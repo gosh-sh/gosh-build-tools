@@ -27,6 +27,8 @@ impl GoshGet for GoshGetService {
     ) -> std::result::Result<tonic::Response<CommitResponse>, tonic::Status> {
         let request = grpc_request.into_inner();
 
+        tracing::debug!("{:?}", request);
+
         match get_commit(&request.gosh_url, &request.commit).await {
             Ok(body) => {
                 // TODO: (maybe?) convert request.commit to canonical hash
@@ -69,6 +71,7 @@ async fn get_commit(gosh_url: impl AsRef<str>, commit: impl AsRef<str>) -> anyho
     std::fs::create_dir_all(&git_context_dir)
         .expect("create specific directories and their parents");
 
+    tracing::debug!("{:?}", &git_context_dir);
     let mut git_clone_process = tokio::process::Command::new("git")
         .arg("clone")
         .arg(gosh_url.as_ref())
@@ -81,14 +84,19 @@ async fn get_commit(gosh_url: impl AsRef<str>, commit: impl AsRef<str>) -> anyho
     git_clone_process
         .stdout
         .take()
-        .map(|io| io.map_per_line(|line| tracing::debug!("{}", line)));
+        .map(|io| io.map_per_line(|line| tracing::debug!("git clone {}", line)));
 
     git_clone_process
         .stderr
         .take()
-        .map(|io| io.map_per_line(|line| tracing::debug!("{}", line)));
+        .map(|io| io.map_per_line(|line| tracing::debug!("git clone {}", line)));
 
-    git_clone_process.wait().await?;
+    let status = git_clone_process.wait().await?;
+
+    if !status.success() {
+        tracing::error!("git-archive process failed: id={}", &id);
+        anyhow::bail!("git clone process failed")
+    }
 
     let mut git_archive_process = tokio::process::Command::new("git")
         .arg("archive")
@@ -114,14 +122,73 @@ async fn get_commit(gosh_url: impl AsRef<str>, commit: impl AsRef<str>) -> anyho
     if git_archive_process.wait().await?.success() {
         Ok(zstd_body)
     } else {
+        tracing::error!(
+            "git-archive process failed: id={} zstd_body={}",
+            &id,
+            zstd_body.len()
+        );
         anyhow::bail!("git-archive process failed")
     }
 }
 
 async fn get_file(
-    _gosh_url: impl AsRef<str>,
-    _commit: impl AsRef<str>,
-    _file_path: impl AsRef<str>,
+    gosh_url: impl AsRef<str>,
+    commit: impl AsRef<str>,
+    file_path: impl AsRef<str>,
 ) -> anyhow::Result<Vec<u8>> {
-    todo!()
+    let id = uuid::Uuid::new_v4();
+    let git_context_dir: PathBuf = std::env::current_dir()
+        .expect("current dir expected")
+        .join(".git-cache")
+        .join(id.to_string());
+
+    std::fs::create_dir_all(&git_context_dir)
+        .expect("create specific directories and their parents");
+
+    let mut git_clone_process = tokio::process::Command::new("git")
+        .arg("clone")
+        .arg(gosh_url.as_ref())
+        .arg(".") // clone into current dir
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped())
+        .current_dir(&git_context_dir)
+        .spawn()?;
+
+    git_clone_process
+        .stdout
+        .take()
+        .map(|io| io.map_per_line(|line| tracing::debug!("{}", line)));
+
+    git_clone_process
+        .stderr
+        .take()
+        .map(|io| io.map_per_line(|line| tracing::debug!("{}", line)));
+
+    git_clone_process.wait().await?;
+
+    let mut git_archive_process = tokio::process::Command::new("git")
+        .arg("show")
+        .arg(format!("{}:{}", commit.as_ref(), file_path.as_ref()))
+        .current_dir(&git_context_dir)
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped())
+        .spawn()?;
+
+    git_archive_process
+        .stderr
+        .take()
+        .map(|io| io.map_per_line(|line| tracing::debug!("{}", line)));
+
+    let Some(stdout) = git_archive_process.stdout.take() else {
+        tracing::error!("unable to take STDOUT: id={}", &id);
+        anyhow::bail!("internal error");
+    };
+
+    let zstd_body = stdout.zstd_read_to_end().await?;
+
+    if git_archive_process.wait().await?.success() {
+        Ok(zstd_body)
+    } else {
+        anyhow::bail!("git-show process failed (usually it's because file doesn't exist)")
+    }
 }
