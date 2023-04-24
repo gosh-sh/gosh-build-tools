@@ -37,7 +37,7 @@ async fn main() -> anyhow::Result<()> {
     let stop_grpc_server =
         grpc_server::run(grpc_socker_addr, sbom.clone(), git_cache_registry).await?;
 
-    tracing::debug!("Dockerfile {:?}", gosh_config.dockerfile);
+    tracing::debug!("Dockerfile:\n{}", gosh_config.dockerfile);
 
     tokio::spawn(async move {
         tracing::info!("Start build...");

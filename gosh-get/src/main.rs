@@ -60,13 +60,8 @@ async fn main() -> anyhow::Result<()> {
 
             let mut target_file = std::io::BufWriter::new(File::create(filename)?);
             let zstd_content = res.get_ref().body.as_slice();
-            tracing::info!("{:?}", zstd_content);
-            // zstd::stream::copy_decode(zstd_content, &mut target_file)?;
             let content = zstd::stream::decode_all(zstd_content)?;
-            tracing::info!("After decode {}", String::from_utf8(content)?);
-            // let decoder = zstd::Decoder::new(zstd_content)?;
-            // let mut decoder_buf = std::io::BufReader::new(decoder);
-            // std::io::copy(&mut decoder_buf, &mut target_file)?;
+            tracing::trace!("After decode {}", String::from_utf8(content)?);
             target_file.flush()?;
         }
     }

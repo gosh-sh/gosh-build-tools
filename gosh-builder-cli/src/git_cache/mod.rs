@@ -26,11 +26,13 @@ impl GitCacheRepo {
 
     async fn update(&self) -> anyhow::Result<()> {
         if self.git_dir.exists() {
+            // TODO: test that repo is not hijaked
             // try git pull
             tracing::info!("git-cache: repo dir exists, try to pull {}", self.url);
             tracing::debug!("{:?}", &self.git_dir);
             let mut git_pull_process = tokio::process::Command::new("git")
                 .arg("pull")
+                .arg("--all")
                 .stdout(Stdio::piped())
                 .stderr(Stdio::piped())
                 .current_dir(&self.git_dir)
@@ -149,7 +151,7 @@ impl GitCacheRepo {
         };
 
         let zstd_body = stdout.zstd_read_to_end().await?;
-        tracing::info!("zstd_body: {:?}", &zstd_body);
+        tracing::trace!("zstd_body: {:?}", &zstd_body);
 
         if git_show_process.wait().await?.success() {
             Ok(zstd_body)

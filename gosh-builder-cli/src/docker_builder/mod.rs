@@ -64,7 +64,6 @@ impl ImageBuilder for GoshBuilder {
         let Some(ref mut stdin) = process.stdin else {
             anyhow::bail!("Can't take stdin");
         };
-        tracing::debug!("{:?}", self.config.dockerfile);
         stdin.write_all(self.config.dockerfile.as_bytes()).await?;
         stdin.flush().await?;
 

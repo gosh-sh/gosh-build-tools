@@ -1,4 +1,4 @@
-use async_compression::tokio::write::ZstdEncoder;
+use async_compression::tokio::bufread;
 use tokio::io::{AsyncRead, BufReader};
 
 #[async_trait::async_trait]
@@ -16,9 +16,9 @@ where
 
         // in theory it should save memory
         {
-            let mut io_buffer = BufReader::new(self);
-            let mut encoder = ZstdEncoder::new(&mut zstd_buffer);
-            tokio::io::copy(&mut io_buffer, &mut encoder).await?;
+            let io_buffer = BufReader::new(self);
+            let mut encoder = bufread::ZstdEncoder::new(io_buffer);
+            tokio::io::copy(&mut encoder, &mut zstd_buffer).await?;
         }
 
         Ok(zstd_buffer)
