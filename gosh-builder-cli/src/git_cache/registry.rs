@@ -42,7 +42,7 @@ impl GitCacheRegistry {
         let mut registry_guard = self.inner.lock().await;
 
         if let Some(git_repo) = registry_guard.get(url.as_ref()) {
-            return Ok(git_repo.clone());
+            Ok(git_repo.clone())
         } else {
             let git_repo = Arc::new(Mutex::new(GitCacheRepo::from(url.as_ref().to_owned())));
             registry_guard.insert(url.as_ref().to_owned(), git_repo.clone());
@@ -55,7 +55,7 @@ impl GitCacheRegistry {
 
             git_repo_guard.update().await?;
 
-            return Ok(git_repo.clone());
+            Ok(git_repo.clone())
         }
     }
 }

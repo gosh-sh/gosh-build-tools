@@ -51,15 +51,13 @@ impl ImageBuilder for GoshBuilder {
 
         // TODO: make it optional via envs
         // if stdout/stderr are piped we redirect them to tracing
-        process
-            .stdout
-            .take()
-            .map(|io| io.map_per_line(|line| tracing::info!("{}", line)));
+        if let Some(io) = process.stdout.take() {
+            io.map_per_line(|line| tracing::info!("{}", line))
+        }
 
-        process
-            .stderr
-            .take()
-            .map(|io| io.map_per_line(|line| tracing::info!("{}", line)));
+        if let Some(io) = process.stderr.take() {
+            io.map_per_line(|line| tracing::info!("{}", line))
+        }
 
         let Some(ref mut stdin) = process.stdin else {
             anyhow::bail!("Can't take stdin");

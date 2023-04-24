@@ -19,7 +19,7 @@ pub async fn run(
     git_cache_registry: GitCacheRegistry,
 ) -> anyhow::Result<Box<dyn FnOnce()>> {
     let git_remote_gosh_service = GitRemoteGoshService::new(sbom.clone());
-    let gosh_get_service = GoshGetService::new(sbom.clone(), git_cache_registry);
+    let gosh_get_service = GoshGetService::new(sbom, git_cache_registry);
 
     // for shutdown
     let (tx, rx) = tokio::sync::oneshot::channel::<()>();

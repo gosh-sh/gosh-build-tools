@@ -19,7 +19,7 @@ impl GitCacheRepo {
         let git_dir = std::env::current_dir()
             .expect("current dir should exist and accessable")
             .join(".git-cache")
-            .join(&hash);
+            .join(hash);
 
         Self { git_dir, url }
     }
@@ -38,15 +38,13 @@ impl GitCacheRepo {
                 .current_dir(&self.git_dir)
                 .spawn()?;
 
-            git_pull_process
-                .stdout
-                .take()
-                .map(|io| io.map_per_line(|line| tracing::debug!("git pull: {}", line)));
+            if let Some(io) = git_pull_process.stdout.take() {
+                io.map_per_line(|line| tracing::debug!("git pull: {}", line))
+            }
 
-            git_pull_process
-                .stderr
-                .take()
-                .map(|io| io.map_per_line(|line| tracing::debug!("git pull: {}", line)));
+            if let Some(io) = git_pull_process.stderr.take() {
+                io.map_per_line(|line| tracing::debug!("git pull: {}", line))
+            }
 
             let status = git_pull_process.wait().await?;
 
@@ -73,15 +71,13 @@ impl GitCacheRepo {
                 .current_dir(&self.git_dir)
                 .spawn()?;
 
-            git_clone_process
-                .stdout
-                .take()
-                .map(|io| io.map_per_line(|line| tracing::debug!("git clone {}", line)));
+            if let Some(io) = git_clone_process.stdout.take() {
+                io.map_per_line(|line| tracing::debug!("git clone {}", line))
+            }
 
-            git_clone_process
-                .stderr
-                .take()
-                .map(|io| io.map_per_line(|line| tracing::debug!("git clone {}", line)));
+            if let Some(io) = git_clone_process.stderr.take() {
+                io.map_per_line(|line| tracing::debug!("git clone {}", line))
+            }
 
             let status = git_clone_process.wait().await?;
 
@@ -107,10 +103,9 @@ impl GitCacheRepo {
             .stderr(Stdio::piped())
             .spawn()?;
 
-        git_archive_process
-            .stderr
-            .take()
-            .map(|io| io.map_per_line(|line| tracing::debug!("{}", line)));
+        if let Some(io) = git_archive_process.stderr.take() {
+            io.map_per_line(|line| tracing::debug!("{}", line))
+        }
 
         let Some(stdout) = git_archive_process.stdout.take() else {
             tracing::error!("unable to take STDOUT: git_dir={:?}", &self.git_dir);
@@ -140,10 +135,9 @@ impl GitCacheRepo {
             .stderr(Stdio::piped())
             .spawn()?;
 
-        git_show_process
-            .stderr
-            .take()
-            .map(|io| io.map_per_line(|line| tracing::debug!("{}", line)));
+        if let Some(io) = git_show_process.stderr.take() {
+            io.map_per_line(|line| tracing::debug!("{}", line))
+        }
 
         let Some(stdout) = git_show_process.stdout.take() else {
             tracing::error!("unable to take STDOUT: url={}", &self.url);
