@@ -1,5 +1,5 @@
 mod cli;
-use std::fs::File;
+use std::{fs::File, io::Write};
 
 use cli::Commands;
 use gosh_builder_grpc_api::proto::{gosh_get_client::GoshGetClient, CommitRequest, FileRequest};
@@ -42,8 +42,12 @@ async fn main() -> anyhow::Result<()> {
             tracing::info!("Parse path...");
             let path_buf = std::path::PathBuf::from(path);
             if !path_buf.is_relative() {
-                anyhow::bail!("Path must be relative");
+                anyhow::bail!("Path must be relative to the git root");
             }
+
+            let Some(filename) = path_buf.file_name() else {
+                anyhow::bail!("Path should end up with filename");
+            };
 
             tracing::info!("Get file...");
             let res = grpc_client
@@ -54,16 +58,16 @@ async fn main() -> anyhow::Result<()> {
                 })
                 .await?;
 
-            // let zstd_content = res.get_ref().body.as_slice();
+            let mut target_file = std::io::BufWriter::new(File::create(filename)?);
+            let zstd_content = res.get_ref().body.as_slice();
+            tracing::info!("{:?}", zstd_content);
+            // zstd::stream::copy_decode(zstd_content, &mut target_file)?;
+            let content = zstd::stream::decode_all(zstd_content)?;
+            tracing::info!("After decode {}", String::from_utf8(content)?);
             // let decoder = zstd::Decoder::new(zstd_content)?;
-            // let writer = File::create("file.tar")?;
-            // let after_decode = decoder.finish();
-
-            // let mut archive = tar::Archive::new(file_content);
-            // tracing::trace!("unpack tarball");
-            // let local_git_dir = std::env::current_dir()?;
-            // archive.unpack(&local_git_dir)?;
-            todo!()
+            // let mut decoder_buf = std::io::BufReader::new(decoder);
+            // std::io::copy(&mut decoder_buf, &mut target_file)?;
+            target_file.flush()?;
         }
     }
 

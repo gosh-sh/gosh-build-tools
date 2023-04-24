@@ -1,12 +1,15 @@
 mod cli;
 mod docker_builder;
+pub mod git_cache;
 mod grpc_server;
 mod log;
 mod sbom;
 mod tracing_pipe;
+pub mod utils;
 pub mod zstd;
 
 use crate::docker_builder::ImageBuilder;
+use crate::git_cache::registry::GitCacheRegistry;
 use crate::{docker_builder::GoshBuilder, sbom::Sbom};
 use gosh_builder_config::GoshConfig;
 use std::{
@@ -27,10 +30,12 @@ async fn main() -> anyhow::Result<()> {
     let gosh_config = GoshConfig::from_file(&cli_settings.config_path, &cli_settings.workdir);
 
     let sbom = Arc::new(Mutex::new(Sbom::default()));
+    let git_cache_registry = GitCacheRegistry::default();
 
     // let grpc_socker_addr = "127.0.0.1:8000".parse().expect("correct address");
     let grpc_socker_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 8000);
-    let stop_grpc_server = grpc_server::run(grpc_socker_addr, sbom.clone()).await?;
+    let stop_grpc_server =
+        grpc_server::run(grpc_socker_addr, sbom.clone(), git_cache_registry).await?;
 
     tracing::debug!("Dockerfile {:?}", gosh_config.dockerfile);
 
