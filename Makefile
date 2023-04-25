@@ -32,3 +32,7 @@ pb:
 clear:
 	rm -rf ./sbom.*
 	rm -rf ./.git-cache
+
+.PHONY: init
+init:
+	cargo run --bin gosh
