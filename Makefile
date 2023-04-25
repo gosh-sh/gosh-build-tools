@@ -35,4 +35,4 @@ clear:
 
 .PHONY: init
 init:
-	cargo run --bin gosh
+	cargo run --bin gosh init
