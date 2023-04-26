@@ -1,4 +1,4 @@
-use crate::ever_client::create_client_local;
+use crate::blockchain::ever_client::create_client_local;
 use ton_client::crypto::{
     default_hdkey_derivation_path, default_mnemonic_word_count, hdkey_derive_from_xprv_path,
     hdkey_secret_from_xprv, hdkey_xprv_from_mnemonic, mnemonic_from_random,

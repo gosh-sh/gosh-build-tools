@@ -1,11 +1,14 @@
 mod config;
 mod crypto;
-mod ever_client;
 mod init;
+mod abi;
+mod blockchain;
+mod env;
 
 use clap::Command;
 
-fn main() -> anyhow::Result<()> {
+#[tokio::main]
+async fn main() -> anyhow::Result<()> {
     let version = option_env!("GOSH_BUILD_VERSION").unwrap_or(env!("CARGO_PKG_VERSION"));
     let matches = Command::new("gosh")
         .about("GOSH cli tool")
