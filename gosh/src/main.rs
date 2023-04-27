@@ -4,6 +4,7 @@ mod init;
 mod abi;
 mod blockchain;
 mod env;
+mod profile;
 
 use clap::Command;
 
@@ -18,7 +19,7 @@ async fn main() -> anyhow::Result<()> {
 
     match matches.subcommand() {
         Some(("init", _)) => {
-            init::init_command()?;
+            init::init_command().await?;
         }
         _ => {
             anyhow::bail!("Wrong subcommand");

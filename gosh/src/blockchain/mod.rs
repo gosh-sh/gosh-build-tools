@@ -1,3 +1,4 @@
 pub mod ever_client;
 pub mod call;
-mod contract;
+pub mod contract;
+pub mod r#const;

@@ -1,5 +1,4 @@
 use std::env;
-use std::ffi::OsStr;
 use std::sync::Arc;
 use std::time::Duration;
 use ton_client::{ClientConfig, ClientContext};
@@ -22,9 +21,7 @@ pub fn create_client_local() -> anyhow::Result<EverClient> {
 }
 
 pub fn create_client(config: &Config) -> anyhow::Result<EverClient> {
-    let endpoints = config
-        .find_network_endpoints(network)
-        .expect("Unknown network");
+    let endpoints = config.get_endpoints();
     let proto = env::var("GOSH_PROTO")
         .unwrap_or_else(|_| ".git".to_string())
         .to_lowercase();

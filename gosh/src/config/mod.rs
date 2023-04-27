@@ -128,4 +128,12 @@ impl Config {
         }
         Ok(())
     }
+
+    pub fn get_endpoints(&self) -> Vec<String> {
+        self.networks.get(&self.primary_network).unwrap().endpoints.clone()
+    }
+
+    pub fn get_username(&self) -> Option<UserWalletConfig> {
+        self.networks.get(&self.primary_network).unwrap().user_wallet.clone()
+    }
 }
