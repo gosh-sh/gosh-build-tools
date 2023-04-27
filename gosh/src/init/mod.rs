@@ -1,7 +1,21 @@
 use crate::config::Config;
 use crate::crypto::{gen_seed_phrase, generate_keypair_from_mnemonic};
 use dialoguer::Input;
+use std::fs::File;
+use std::io::Write;
+use std::path::Path;
 use std::process::exit;
+use tokio::process::Command;
+
+static GOSH_YAML: &str = "\
+---
+dockerfile:
+  path: Dockerfile
+tag: gosh-builder-result
+
+";
+
+pub static GOSH_YAML_PATH: &str = "./GOSH.yaml";
 
 fn generate_config() -> anyhow::Result<Config> {
     let username: String = Input::new()
@@ -35,7 +49,7 @@ fn generate_config() -> anyhow::Result<Config> {
     Ok(config)
 }
 
-pub fn init_command() -> anyhow::Result<()> {
+pub async fn init_command() -> anyhow::Result<()> {
     let gosh_config = match Config::load() {
         Ok(config) => match config.check_keys() {
             Ok(_) => config,
@@ -67,6 +81,45 @@ pub fn init_command() -> anyhow::Result<()> {
             generate_config()?
         }
     };
-    println!("{}", serde_json::to_string_pretty(&gosh_config)?);
+
+    let user_data = gosh_config.get_user_data();
+    println!("Your GOSH config parameters:");
+    println!("username: {}", user_data.profile);
+    println!("pubkey: {}", user_data.pubkey);
+
+    check_local_git_remotes(&user_data.profile).await?;
+
+    create_gosh_yaml()?;
+
+    Ok(())
+}
+
+async fn check_local_git_remotes(profile: &str) -> anyhow::Result<()> {
+    let remotes = Command::new("git").arg("remote").arg("-v").output().await?;
+
+    let output = String::from_utf8_lossy(&remotes.stdout).to_string();
+    if !output.contains("gosh://") {
+        println!("Seems like your local repo does not have a remote url directed to GOSH.");
+        println!(
+            "Please go to https://app.gosh.sh/o/{}/repos to get link to the GOSH repository",
+            profile
+        );
+        println!("and add this link to the list of git remotes:");
+        println!("  `git remote add gosh gosh://0:0d5c05d7a63f438b57ede179b7110d3e903f5be3b5f543d3d6743d774698e92c/{}/<repo_name>`", profile);
+        exit(0);
+    }
+
+    Ok(())
+}
+
+fn create_gosh_yaml() -> anyhow::Result<()> {
+    let path = Path::new(GOSH_YAML_PATH);
+    if !path.exists() {
+        let mut file = File::create(GOSH_YAML_PATH)?;
+        file.write_all(GOSH_YAML.as_bytes())?;
+        println!("GOSH.yaml file was successfully generated.");
+    } else {
+        println!("You already have the GOSH.yaml file in the current directory.");
+    }
     Ok(())
 }

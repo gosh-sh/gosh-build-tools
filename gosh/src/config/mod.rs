@@ -128,4 +128,13 @@ impl Config {
         }
         Ok(())
     }
+
+    pub fn get_user_data(&self) -> UserWalletConfig {
+        self.networks
+            .get(&self.primary_network)
+            .unwrap()
+            .user_wallet
+            .clone()
+            .unwrap()
+    }
 }
