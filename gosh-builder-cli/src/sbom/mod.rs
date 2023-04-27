@@ -1,15 +1,7 @@
-use cyclonedx_bom::prelude::{
-    Bom,
-    UrnUuid,
-    Component,
-    Components,
-    Metadata,
-    NormalizedString,
-    Purl
-};
 use cyclonedx_bom::models::component::Classification;
-use cyclonedx_bom::models::{
-    tool::{Tool, Tools},
+use cyclonedx_bom::models::tool::{Tool, Tools};
+use cyclonedx_bom::prelude::{
+    Bom, Component, Components, Metadata, NormalizedString, Purl, UrnUuid,
 };
 
 use std::fs::File;
@@ -32,20 +24,15 @@ impl Sbom {
         // over time. The process or tool responsible for creating the BOM
         // should create random UUID's for every BOM generated.
         // TODO: fix temporary hack.
-        let serial_number = UrnUuid::new(
-            "urn:uuid:3e671687-395b-41f5-a30f-a58921a69b79".to_string()
-        ).expect("Failed to create UrnUuid");
+        let serial_number =
+            UrnUuid::new("urn:uuid:3e671687-395b-41f5-a30f-a58921a69b79".to_string())
+                .expect("Failed to create UrnUuid");
         let mut components = vec![];
         for item in &self.inner {
             let name = &item;
             let version = "1.0.0";
             let bom_ref = None;
-            let mut component = Component::new(
-                Classification::File,
-                name,
-                version,
-                bom_ref
-            );
+            let mut component = Component::new(Classification::File, name, version, bom_ref);
             component.purl = Some(Purl::new("gosh", name, version)?);
             components.push(component);
         }
@@ -58,7 +45,7 @@ impl Sbom {
                 }])),
                 ..Metadata::default()
             }),
-            components: Some(Components (components)),
+            components: Some(Components(components)),
             ..Bom::default()
         };
         let mut output = Vec::<u8>::new();

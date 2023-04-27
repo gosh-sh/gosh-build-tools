@@ -24,7 +24,7 @@ fn generate_config() -> anyhow::Result<Config> {
             .with_prompt("Have you read and understand the warning? (Y/n)")
             .with_initial_text("Y")
             .interact_text()?;
-        if input != "Y".to_string() {
+        if input != *"Y" {
             exit(0);
         }
         seed
@@ -45,7 +45,7 @@ pub fn init_command() -> anyhow::Result<()> {
                     .with_prompt("Do you want to go through the onboarding process locally? (Y/n)")
                     .with_initial_text("Y")
                     .interact_text()?;
-                if choice != "Y".to_string() {
+                if choice != *"Y" {
                     println!("Hope to see you soon.");
                     exit(0);
                 }
@@ -60,7 +60,7 @@ pub fn init_command() -> anyhow::Result<()> {
                 .with_prompt("Do you want to go through the process locally? (Y/n)")
                 .with_initial_text("Y")
                 .interact_text()?;
-            if choice != "Y".to_string() {
+            if choice != *"Y" {
                 println!("Hope to see you soon.");
                 exit(0);
             }
