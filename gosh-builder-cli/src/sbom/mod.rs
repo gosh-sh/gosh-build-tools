@@ -50,7 +50,7 @@ impl Sbom {
             components.push(component);
         }
         let bom = Bom {
-            serial_number: serial_number,
+            serial_number: Some(serial_number),
             metadata: Some(Metadata {
                 tools: Some(Tools(vec![Tool {
                     name: Some(NormalizedString::new("gosh-docker-build")),
