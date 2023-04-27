@@ -28,6 +28,7 @@ gosh-ubuntu: pb
 gosh-ubuntu-push: pb
 	docker buildx build \
 		` # --progress=plain ` \
+		--no-cache \
 		--build-arg BRANCH=dev \
 		--tag awnion/gosh-ubuntu:22.04 \
 		--file images/Dockerfile \
