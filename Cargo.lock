@@ -69,9 +69,9 @@ dependencies = [
 
 [[package]]
 name = "anstream"
-version = "0.3.0"
+version = "0.3.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9e579a7752471abc2a8268df8b20005e3eadd975f585398f17efcfd8d4927371"
+checksum = "6342bd4f5a1205d7f41e94a41a901f5647c938cdfa96036338e8533c9d6c2450"
 dependencies = [
  "anstyle",
  "anstyle-parse",
@@ -108,9 +108,9 @@ dependencies = [
 
 [[package]]
 name = "anstyle-wincon"
-version = "1.0.0"
+version = "1.0.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4bcd8291a340dd8ac70e18878bc4501dd7b4ff970cfa21c207d36ece51ea88fd"
+checksum = "180abfa45703aebe0093f79badacc01b8fd4ea2e35118747e5811127f926e188"
 dependencies = [
  "anstyle",
  "windows-sys 0.48.0",
@@ -125,7 +125,7 @@ checksum = "7de8ce5e0f9f8d88245311066a578d72b7af3e7088f32783804676302df237e4"
 [[package]]
 name = "api_derive"
 version = "1.42.1"
-source = "git+https://github.com/tonlabs/TON-SDK.git?tag=1.42.1#4dbaac8c5c329b87f81fa463ce9e1efbcd6a5353"
+source = "git+https://github.com/tonlabs/ever-sdk.git?tag=1.42.1#4dbaac8c5c329b87f81fa463ce9e1efbcd6a5353"
 dependencies = [
  "api_info",
  "proc-macro2",
@@ -137,7 +137,7 @@ dependencies = [
 [[package]]
 name = "api_info"
 version = "1.42.1"
-source = "git+https://github.com/tonlabs/TON-SDK.git?tag=1.42.1#4dbaac8c5c329b87f81fa463ce9e1efbcd6a5353"
+source = "git+https://github.com/tonlabs/ever-sdk.git?tag=1.42.1#4dbaac8c5c329b87f81fa463ce9e1efbcd6a5353"
 dependencies = [
  "serde",
  "serde_derive",
@@ -189,9 +189,9 @@ checksum = "d468802bab17cbc0cc575e9b053f41e72aa36bfa6b7f55e3529ffa43161b97fa"
 
 [[package]]
 name = "axum"
-version = "0.6.16"
+version = "0.6.17"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "113713495a32dd0ab52baf5c10044725aa3aec00b31beda84218e469029b72a3"
+checksum = "b70caf9f1b0c045f7da350636435b775a9733adf2df56e8aa2a29210fbc335d4"
 dependencies = [
  "async-trait",
  "axum-core",
@@ -1339,11 +1339,11 @@ dependencies = [
 
 [[package]]
 name = "home"
-version = "0.5.4"
+version = "0.5.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "747309b4b440c06d57b0b25f2aee03ee9b5e5397d288c60e21fc709bb98a7408"
+checksum = "5444c27eef6923071f7ebcc33e3444508466a76f7a2b93da00ed6e19f30c1ddb"
 dependencies = [
- "winapi",
+ "windows-sys 0.48.0",
 ]
 
 [[package]]
@@ -1961,9 +1961,9 @@ dependencies = [
 
 [[package]]
 name = "openssl-sys"
-version = "0.9.86"
+version = "0.9.87"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "992bac49bdbab4423199c654a5515bd2a6c6a23bf03f2dd3bdb7e5ae6259bc69"
+checksum = "8e17f59264b2809d77ae94f0e1ebabc434773f370d6ca667bd223ea10e06cc7e"
 dependencies = [
  "cc",
  "libc",
@@ -2408,9 +2408,9 @@ checksum = "08d43f7aa6b08d49f382cde6a7982047c3426db949b1424bc4b7ec9ae12c6ce2"
 
 [[package]]
 name = "rustix"
-version = "0.37.14"
+version = "0.37.15"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d9b864d3c18a5785a05953adeed93e2dca37ed30f18e69bba9f30079d51f363f"
+checksum = "a0661814f891c57c930a610266415528da53c4933e6dea5fb350cbfe048a9ece"
 dependencies = [
  "bitflags",
  "errno",
@@ -3047,9 +3047,9 @@ dependencies = [
 
 [[package]]
 name = "tokio-stream"
-version = "0.1.12"
+version = "0.1.14"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8fb52b74f05dbf495a8fba459fdc331812b96aa086d9eb78101fa0d4569c3313"
+checksum = "397c988d37662c7dda6d2208364a706264bf3d6138b11d436cbac0ad38832842"
 dependencies = [
  "futures-core",
  "pin-project-lite",
@@ -3072,9 +3072,9 @@ dependencies = [
 
 [[package]]
 name = "tokio-util"
-version = "0.7.7"
+version = "0.7.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5427d89453009325de0d8f342c9490009f76e999cb7672d77e46267448f7e6b2"
+checksum = "806fe8c2c87eccc8b3267cbae29ed3ab2d0bd37fca70ab622e46aaa9375ddb7d"
 dependencies = [
  "bytes",
  "futures-core",
@@ -3183,7 +3183,7 @@ dependencies = [
 [[package]]
 name = "ton_client"
 version = "1.42.1"
-source = "git+https://github.com/tonlabs/TON-SDK.git?tag=1.42.1#4dbaac8c5c329b87f81fa463ce9e1efbcd6a5353"
+source = "git+https://github.com/tonlabs/ever-sdk.git?tag=1.42.1#4dbaac8c5c329b87f81fa463ce9e1efbcd6a5353"
 dependencies = [
  "aes",
  "api_derive",
@@ -3241,7 +3241,7 @@ dependencies = [
 [[package]]
 name = "ton_client_processing"
 version = "1.42.1"
-source = "git+https://github.com/tonlabs/TON-SDK.git?tag=1.42.1#4dbaac8c5c329b87f81fa463ce9e1efbcd6a5353"
+source = "git+https://github.com/tonlabs/ever-sdk.git?tag=1.42.1#4dbaac8c5c329b87f81fa463ce9e1efbcd6a5353"
 dependencies = [
  "api_derive",
  "api_info",
@@ -3274,7 +3274,7 @@ dependencies = [
 [[package]]
 name = "ton_sdk"
 version = "1.42.1"
-source = "git+https://github.com/tonlabs/TON-SDK.git?tag=1.42.1#4dbaac8c5c329b87f81fa463ce9e1efbcd6a5353"
+source = "git+https://github.com/tonlabs/ever-sdk.git?tag=1.42.1#4dbaac8c5c329b87f81fa463ce9e1efbcd6a5353"
 dependencies = [
  "api_derive",
  "api_info",
@@ -3428,11 +3428,10 @@ checksum = "b6bc1c9ce2b5135ac7f93c72918fc37feb872bdc6a5533a8b85eb4b86bfdae52"
 
 [[package]]
 name = "tracing"
-version = "0.1.37"
+version = "0.1.38"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8ce8c33a8d48bd45d624a6e523445fd21ec13d3653cd51f681abf67418f54eb8"
+checksum = "cf9cf6a813d3f40c88b0b6b6f29a5c95c6cdbf97c1f9cc53fb820200f5ad814d"
 dependencies = [
- "cfg-if",
  "pin-project-lite",
  "tracing-attributes",
  "tracing-core",
@@ -3440,13 +3439,13 @@ dependencies = [
 
 [[package]]
 name = "tracing-attributes"
-version = "0.1.23"
+version = "0.1.24"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4017f8f45139870ca7e672686113917c71c7a6e02d4924eda67186083c03081a"
+checksum = "0f57e3ca2a01450b1a921183a9c9cbfda207fd822cef4ccb00a65402cbba7a74"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn 1.0.109",
+ "syn 2.0.15",
 ]
 
 [[package]]
