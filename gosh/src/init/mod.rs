@@ -49,7 +49,7 @@ fn generate_config() -> anyhow::Result<Config> {
     Ok(config)
 }
 
-pub async fn init_command() -> anyhow::Result<()> {
+pub async fn init_command(gosh_url: Option<&String>) -> anyhow::Result<()> {
     let gosh_config = match Config::load() {
         Ok(config) => match config.check_keys() {
             Ok(_) => config,
@@ -87,28 +87,40 @@ pub async fn init_command() -> anyhow::Result<()> {
     println!("username: {}", user_data.profile);
     println!("pubkey: {}", user_data.pubkey);
 
-    check_local_git_remotes(&user_data.profile).await?;
+    check_local_git_remotes(&user_data.profile, gosh_url).await?;
 
     create_gosh_yaml()?;
 
     Ok(())
 }
 
-async fn check_local_git_remotes(profile: &str) -> anyhow::Result<()> {
-    let remotes = Command::new("git").arg("remote").arg("-v").output().await?;
+async fn check_local_git_remotes(profile: &str, gosh_url: Option<&String>) -> anyhow::Result<()> {
+    match gosh_url {
+        None => {
+            let remotes = Command::new("git").arg("remote").arg("-v").output().await?;
 
-    let output = String::from_utf8_lossy(&remotes.stdout).to_string();
-    if !output.contains("gosh://") {
-        println!("Seems like your local repo does not have a remote url directed to GOSH.");
-        println!(
-            "Please go to https://app.gosh.sh/o/{}/repos to get link to the GOSH repository",
-            profile
-        );
-        println!("and add this link to the list of git remotes:");
-        println!("  `git remote add gosh gosh://0:0d5c05d7a63f438b57ede179b7110d3e903f5be3b5f543d3d6743d774698e92c/{}/<repo_name>`", profile);
-        exit(0);
+            let output = String::from_utf8_lossy(&remotes.stdout).to_string();
+            if !output.contains("gosh://") {
+                println!("Seems like your local repo does not have a remote url directed to GOSH.");
+                println!(
+                    "Please go to https://app.gosh.sh/o/{}/repos to get link to the GOSH repository",
+                    profile
+                );
+                println!("and add this link to the list of git remotes:");
+                println!("  `git remote add gosh gosh://0:0d5c05d7a63f438b57ede179b7110d3e903f5be3b5f543d3d6743d774698e92c/{}/<repo_name>`", profile);
+                exit(0);
+            }
+        }
+        Some(url) => {
+            let _ = Command::new("git")
+                .arg("remote")
+                .arg("add")
+                .arg("gosh")
+                .arg(url)
+                .status()
+                .await?;
+        }
     }
-
     Ok(())
 }
 

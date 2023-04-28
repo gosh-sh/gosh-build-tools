@@ -4,7 +4,7 @@ mod crypto;
 mod ever_client;
 mod init;
 
-use clap::Command;
+use clap::{Arg, Command};
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
@@ -12,13 +12,18 @@ async fn main() -> anyhow::Result<()> {
     let matches = Command::new("gosh")
         .about("GOSH cli tool")
         .version(version)
-        .subcommand(Command::new("init").about("Start GOSH onboarding"))
+        .subcommand(
+            Command::new("init")
+                .about("Start GOSH onboarding")
+                .arg(Arg::new("GOSH_URL").required(false)),
+        )
         .subcommand(Command::new("build").about("Run gosh-build-cli"))
         .get_matches();
 
     match matches.subcommand() {
-        Some(("init", _)) => {
-            init::init_command().await?;
+        Some(("init", matches)) => {
+            let gosh_url = matches.get_one::<String>("GOSH_URL");
+            init::init_command(gosh_url).await?;
         }
         Some(("build", _)) => {
             build::build_command().await?;
