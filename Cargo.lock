@@ -1131,6 +1131,7 @@ dependencies = [
  "clap",
  "dialoguer",
  "hex 0.4.3",
+ "openssl",
  "serde",
  "serde_json",
  "shellexpand",
@@ -1148,6 +1149,7 @@ dependencies = [
  "bytes",
  "clap",
  "cyclonedx-bom",
+ "dirs",
  "gosh-builder-config",
  "gosh-builder-grpc-api",
  "hyper",
@@ -1920,9 +1922,9 @@ checksum = "624a8340c38c1b80fd549087862da4ba43e08858af025b236e509b6649fc13d5"
 
 [[package]]
 name = "openssl"
-version = "0.10.50"
+version = "0.10.52"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7e30d8bc91859781f0a943411186324d580f2bbeb71b452fe91ae344806af3f1"
+checksum = "01b8574602df80f7b85fdfc5392fa884a4e3b3f4f35402c070ab34c3d3f78d56"
 dependencies = [
  "bitflags",
  "cfg-if",

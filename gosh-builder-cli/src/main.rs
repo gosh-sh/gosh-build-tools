@@ -64,10 +64,11 @@ async fn main() -> anyhow::Result<()> {
     stop_grpc_server();
 
     tracing::info!("Writing SBOM...");
-    sbom.lock()
-        .await
-        .save_to(std::path::Path::new("sbom.spdx"))
-        .await?;
+
+    match std::env::var("SBOM_OUT") {
+        Ok(path) => sbom.lock().await.save_to(path).await?,
+        Err(_) => sbom.lock().await.save_to("sbom.spdx").await?,
+    };
     tracing::info!("SBOM's ready");
 
     Ok(())

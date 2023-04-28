@@ -11,11 +11,11 @@ static GOSH_YAML: &str = "\
 ---
 dockerfile:
   path: Dockerfile
-tag: gosh-builder-result
+tag: your-image-tag
 
 ";
 
-pub static GOSH_YAML_PATH: &str = "./GOSH.yaml";
+pub static GOSH_YAML_PATH: &str = "./Gosh.yaml";
 
 fn generate_config() -> anyhow::Result<Config> {
     let username: String = Input::new()
@@ -67,9 +67,17 @@ pub async fn init_command() -> anyhow::Result<()> {
             }
         },
         Err(_) => {
-            println!("There was no GOSH config found on your PC.");
-            println!("You can go through the onboarding process on web https://app.gosh.sh/onboarding (if you have already done it, you should open Settings and save `Git remote config` on your PC).");
-            println!("Otherwise you can pass onboarding locally.\n");
+            println!(
+                "\
+There was no GOSH config found on your PC.
+You can go through the onboarding process on web:
+
+    1. Go to https://app.gosh.sh/onboarding
+    2. Create a new profile
+    3. Open Menu/Settings and save \"Git remote config\" into your $HOME/.gosh/config.json
+
+Otherwise you can pass onboarding locally.\n"
+            );
             let choice: String = Input::new()
                 .with_prompt("Do you want to go through the process locally? (Y/n)")
                 .with_initial_text("Y")
@@ -117,9 +125,9 @@ fn create_gosh_yaml() -> anyhow::Result<()> {
     if !path.exists() {
         let mut file = File::create(GOSH_YAML_PATH)?;
         file.write_all(GOSH_YAML.as_bytes())?;
-        println!("GOSH.yaml file was successfully generated.");
+        println!("Gosh.yaml file was successfully generated.");
     } else {
-        println!("You already have the GOSH.yaml file in the current directory.");
+        println!("You already have the Gosh.yaml file in the current directory.");
     }
     Ok(())
 }
