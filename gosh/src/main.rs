@@ -1,10 +1,10 @@
+mod abi;
+mod blockchain;
 mod build;
 mod config;
 mod crypto;
-mod init;
-mod abi;
-mod blockchain;
 mod env;
+mod init;
 mod profile;
 
 use clap::Command;

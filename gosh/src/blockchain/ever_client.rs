@@ -1,10 +1,10 @@
+use crate::config::Config;
+use crate::env::parse_env_or;
 use std::env;
 use std::sync::Arc;
 use std::time::Duration;
-use ton_client::{ClientConfig, ClientContext};
 use ton_client::net::NetworkQueriesProtocol;
-use crate::config::Config;
-use crate::env::parse_env_or;
+use ton_client::{ClientConfig, ClientContext};
 
 // default timeout for all types of operation (e.g. message_processing, wait_for, query)
 static DEFAULT_BLOCKCHAIN_TIMEOUT: Duration = Duration::from_secs(15 * 60);

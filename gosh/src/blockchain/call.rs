@@ -1,11 +1,11 @@
 use std::sync::Arc;
-use ton_client::abi::{CallSet, encode_message, ParamsOfEncodeMessage, Signer};
+use ton_client::abi::{encode_message, CallSet, ParamsOfEncodeMessage, Signer};
 
-use ton_client::net::{ParamsOfQueryCollection, query_collection};
-use ton_client::processing::{ParamsOfProcessMessage, ProcessingEvent};
-use ton_client::tvm::{ParamsOfRunTvm, run_tvm};
 use crate::blockchain::contract::Contract;
 use crate::blockchain::ever_client::EverClient;
+use ton_client::net::{query_collection, ParamsOfQueryCollection};
+use ton_client::processing::{ParamsOfProcessMessage, ProcessingEvent};
+use ton_client::tvm::{run_tvm, ParamsOfRunTvm};
 
 pub async fn call_getter(
     client: &EverClient,
@@ -14,8 +14,8 @@ pub async fn call_getter(
     args: Option<serde_json::Value>,
 ) -> anyhow::Result<serde_json::Value> {
     let filter = Some(serde_json::json!({
-            "id": { "eq": contract.address }
-        }));
+        "id": { "eq": contract.address }
+    }));
     let query = query_collection(
         Arc::clone(client),
         ParamsOfQueryCollection {
@@ -26,15 +26,15 @@ pub async fn call_getter(
             order: None,
         },
     )
-        .await
-        .map(|r| r.result)?;
+    .await
+    .map(|r| r.result)?;
 
     if query.is_empty() {
         anyhow::bail!(
-                "account with address {} not found. Was trying to call {}",
-                contract.address,
-                function_name,
-            );
+            "account with address {} not found. Was trying to call {}",
+            contract.address,
+            function_name,
+        );
     }
     let boc: String = serde_json::from_value(query[0]["boc"].clone())?;
 
@@ -55,7 +55,7 @@ pub async fn call_getter(
             signature_id: None,
         },
     )
-        .await?;
+    .await?;
 
     let result = run_tvm(
         Arc::clone(&client),
@@ -68,20 +68,17 @@ pub async fn call_getter(
             return_updated_account: None,
         },
     )
-        .await
-        .map(|r| r.decoded.unwrap())
-        .map(|r| r.output.unwrap())?;
+    .await
+    .map(|r| r.decoded.unwrap())
+    .map(|r| r.output.unwrap())?;
 
     Ok(result)
 }
 
-pub async fn is_account_active(
-    client: &EverClient,
-    address: &str,
-) -> anyhow::Result<bool> {
+pub async fn is_account_active(client: &EverClient, address: &str) -> anyhow::Result<bool> {
     let filter = Some(serde_json::json!({
-            "id": { "eq": address }
-        }));
+        "id": { "eq": address }
+    }));
     let query = query_collection(
         Arc::clone(client),
         ParamsOfQueryCollection {
@@ -92,8 +89,8 @@ pub async fn is_account_active(
             order: None,
         },
     )
-        .await
-        .map(|r| r.result)?;
+    .await
+    .map(|r| r.result)?;
     if query.is_empty() {
         return Ok(false);
     }
@@ -135,9 +132,8 @@ pub async fn call_function(
         },
         default_callback,
     )
-        .await?;
+    .await?;
     Ok(())
 }
 
-async fn default_callback(_pe: ProcessingEvent) {
-}
+async fn default_callback(_pe: ProcessingEvent) {}

@@ -1,26 +1,30 @@
-use std::time::Duration;
-use serde_json::json;
-use tokio::time::sleep;
 use crate::abi::{PROFILE, SYSTEM};
 use crate::blockchain::call::{call_function, call_getter, is_account_active};
 use crate::blockchain::contract::Contract;
 use crate::blockchain::ever_client::EverClient;
 use crate::blockchain::r#const::SYSTEM_CONTRACT_ADDESS;
+use serde_json::json;
+use std::time::Duration;
+use tokio::time::sleep;
 
 const PROFILE_CHECK_ATTEMPTS: i32 = 10;
 
 pub async fn get_profile_address(
     ever_client: &EverClient,
-    username: &str
+    username: &str,
 ) -> anyhow::Result<String> {
     let system_contract = Contract::new(SYSTEM_CONTRACT_ADDESS, SYSTEM);
     let res = call_getter(
         &ever_client,
         &system_contract,
         "getProfileAddr",
-        Some(json!({"name": username})),
-    ).await?;
-    Ok(res["value0"].as_str().ok_or(anyhow::format_err!("Failed to decode profile address"))?.to_string())
+        Some(json!({ "name": username })),
+    )
+    .await?;
+    Ok(res["value0"]
+        .as_str()
+        .ok_or(anyhow::format_err!("Failed to decode profile address"))?
+        .to_string())
 }
 
 pub async fn check_profile_pubkey(
@@ -35,15 +39,15 @@ pub async fn check_profile_pubkey(
         &ever_client,
         &profile_contract,
         "isPubkeyCorrect",
-        Some(json!({"pubkey": pubkey})),
-    ).await?;
-    Ok(res["value0"].as_bool().ok_or(anyhow::format_err!("Failed to decode getter result"))?)
+        Some(json!({ "pubkey": pubkey })),
+    )
+    .await?;
+    Ok(res["value0"]
+        .as_bool()
+        .ok_or(anyhow::format_err!("Failed to decode getter result"))?)
 }
 
-pub async fn does_profile_exist(
-    ever_client: &EverClient,
-    username: &str,
-) -> anyhow::Result<bool> {
+pub async fn does_profile_exist(ever_client: &EverClient, username: &str) -> anyhow::Result<bool> {
     let address = get_profile_address(ever_client, username).await?;
     is_account_active(ever_client, &address).await
 }
@@ -59,20 +63,27 @@ pub async fn deploy_profile(
     let pubkey = format!("0x{}", pubkey);
     let address = get_profile_address(ever_client, username).await?;
     let system_contract = Contract::new(SYSTEM_CONTRACT_ADDESS, SYSTEM);
-    call_function(ever_client, &system_contract, "deployProfile",
-                  Some(json!({
-        "name": username,
-        "pubkey": pubkey
-    }))).await?;
+    call_function(
+        ever_client,
+        &system_contract,
+        "deployProfile",
+        Some(json!({
+            "name": username,
+            "pubkey": pubkey
+        })),
+    )
+    .await?;
 
     let mut attempt = 0;
     loop {
         attempt += 1;
         sleep(Duration::from_secs(5)).await;
         match is_account_active(ever_client, &address).await {
-            Err(e) => { return Err(e) },
-            Ok(false) => {},
-            Ok(true) => { break; }
+            Err(e) => return Err(e),
+            Ok(false) => {}
+            Ok(true) => {
+                break;
+            }
         }
         if attempt == PROFILE_CHECK_ATTEMPTS {
             anyhow::bail!("Failed to deploy user profile");

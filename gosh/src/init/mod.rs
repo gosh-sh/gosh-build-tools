@@ -7,10 +7,7 @@ use std::path::Path;
 use std::process::exit;
 use tokio::process::Command;
 
-
 use ton_client::crypto::KeyPair;
-
-
 
 use crate::blockchain::ever_client::create_client;
 use crate::blockchain::r#const::SYSTEM_CONTRACT_ADDESS;
@@ -31,7 +28,7 @@ async fn generate_config() -> anyhow::Result<Config> {
     let default_config = Config::default();
     let default_client = create_client(&default_config)?;
 
-    let (username, keys) =  loop {
+    let (username, keys) = loop {
         let username: String = Input::new()
             .with_prompt("Please enter your username")
             .interact_text()?;
@@ -50,13 +47,13 @@ async fn generate_config() -> anyhow::Result<Config> {
             let keys = generate_keypair_from_mnemonic(&user_seed)?;
             if profile_exists {
                 match check_profile_pubkey(&default_client, &username, &keys.public).await {
-                    Err(e) => { return Err(e) },
-                    Ok(true) => { keys },
+                    Err(e) => return Err(e),
+                    Ok(true) => keys,
                     Ok(false) => {
                         println!("Username does already exist and your seed phrase is not correct for this profile.");
                         println!("Please create a unique username or find your old seed phrase.");
                         continue;
-                    },
+                    }
                 }
             } else {
                 keys
@@ -161,7 +158,10 @@ async fn check_local_git_remotes(profile: &str) -> anyhow::Result<()> {
             profile
         );
         println!("and add this link to the list of git remotes:");
-        println!("  `git remote add gosh gosh://{}/{}/<repo_name>`", SYSTEM_CONTRACT_ADDESS, profile);
+        println!(
+            "  `git remote add gosh gosh://{}/{}/<repo_name>`",
+            SYSTEM_CONTRACT_ADDESS, profile
+        );
         exit(0);
     }
 
