@@ -1,6 +1,6 @@
 use std::sync::Arc;
 use ton_client::abi::{CallSet, encode_message, ParamsOfEncodeMessage, Signer};
-use ton_client::boc::{BocCacheType, cache_set, ParamsOfBocCacheSet};
+
 use ton_client::net::{ParamsOfQueryCollection, query_collection};
 use ton_client::processing::{ParamsOfProcessMessage, ProcessingEvent};
 use ton_client::tvm::{ParamsOfRunTvm, run_tvm};

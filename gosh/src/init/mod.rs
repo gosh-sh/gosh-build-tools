@@ -6,15 +6,16 @@ use std::io::Write;
 use std::path::Path;
 use std::process::exit;
 use tokio::process::Command;
-use std::time::Duration;
-use serde_json::json;
+
+
 use ton_client::crypto::KeyPair;
-use crate::abi::SYSTEM;
-use crate::blockchain::call::{call_function, call_getter, is_account_active};
-use crate::blockchain::contract::Contract;
+
+
+
 use crate::blockchain::ever_client::create_client;
 use crate::blockchain::r#const::SYSTEM_CONTRACT_ADDESS;
-use crate::profile::{check_profile_pubkey, does_profile_exist};
+
+use crate::profile::{check_profile_pubkey, deploy_profile, does_profile_exist};
 
 static GOSH_YAML: &str = "\
 ---
@@ -78,12 +79,16 @@ async fn generate_config() -> anyhow::Result<Config> {
             }
             generate_keypair_from_mnemonic(&seed)?
         };
-
         break (username, keys);
     };
 
     let config = Config::with_user_data(username, keys.secret, keys.public);
     config.save()?;
+
+    let userdata = config.get_user_data();
+    if !does_profile_exist(&default_client, &userdata.profile).await? {
+        deploy_profile(&default_client, &userdata.profile, &userdata.pubkey).await?;
+    }
     Ok(config)
 }
 
@@ -137,34 +142,6 @@ Otherwise you can pass onboarding locally.\n"
 
     create_gosh_yaml()?;
 
-    // let username = user_data.profile;
-    // let pubkey = format!("0x{}", user_data.pubkey);
-    // let ever_client = create_client(&gosh_config)?;
-    // let system_contract = Contract::new(SYSTEM_CONTRACT_ADDESS, SYSTEM);
-    // let res = call_getter(
-    //     &ever_client,
-    //     &system_contract,
-    //     "getProfileAddr",
-    //     Some(json!({"name": username})),
-    // ).await?;
-    // let profile_address = res["value0"].as_str().expect("Failed to decode profile address");
-    // if is_account_active(&ever_client, profile_address).await? {
-    //     println!("User profile account is active");
-    // } else {
-    //     println!("User profile account is not active. Trying to deploy a profile.");
-    //
-    //     call_function(&ever_client, &system_contract, "deployProfile",
-    //                   Some(json!({
-    //         "name": username,
-    //         "pubkey": pubkey
-    //     }))).await?;
-    //     tokio::time::sleep(Duration::from_secs(30)).await;
-    //     if is_account_active(&ever_client, profile_address).await? {
-    //         println!("User profile account is active");
-    //     } else {
-    //         anyhow::bail!("Failed to deploy profile. Try again later.");
-    //     }
-    // }
     Ok(())
 }
 
@@ -184,7 +161,7 @@ async fn check_local_git_remotes(profile: &str) -> anyhow::Result<()> {
             profile
         );
         println!("and add this link to the list of git remotes:");
-        println!("  `git remote add gosh gosh://0:0d5c05d7a63f438b57ede179b7110d3e903f5be3b5f543d3d6743d774698e92c/{}/<repo_name>`", profile);
+        println!("  `git remote add gosh gosh://{}/{}/<repo_name>`", SYSTEM_CONTRACT_ADDESS, profile);
         exit(0);
     }
 

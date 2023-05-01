@@ -6,7 +6,7 @@ use std::io::{BufReader, Read, Write};
 use std::path::Path;
 use std::{env, fmt};
 use crate::blockchain::ever_client::create_client;
-use crate::profile::{check_profile_pubkey, get_profile_address};
+use crate::profile::{check_profile_pubkey};
 
 #[derive(Clone, serde::Deserialize, serde::Serialize)]
 pub struct UserWalletConfig {
