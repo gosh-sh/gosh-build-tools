@@ -8,3 +8,4 @@ macro_rules! abi {
 type Abi = (&'static str, &'static str);
 
 pub static SYSTEM: Abi = abi!("systemcontract.abi.json");
+pub static PROFILE: Abi = abi!("profile.abi.json");
