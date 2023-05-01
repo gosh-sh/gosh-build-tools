@@ -19,7 +19,7 @@ impl ImageBuilder for GoshBuilder {
     async fn run(&self) -> anyhow::Result<()> {
         let mut command = Command::new("docker");
         command.arg("buildx").arg("build");
-        command.arg("--progress=plain");
+        // command.arg("--progress=plain");
         command.arg("--no-cache");
         command.arg("--network=host"); // TODO: fix network access
         if let Some(ref tag) = self.config.tag {

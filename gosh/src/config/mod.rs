@@ -133,7 +133,12 @@ impl Config {
         self.networks.get(&self.primary_network).unwrap().endpoints.clone()
     }
 
-    pub fn get_username(&self) -> Option<UserWalletConfig> {
-        self.networks.get(&self.primary_network).unwrap().user_wallet.clone()
+    pub fn get_user_data(&self) -> UserWalletConfig {
+        self.networks
+            .get(&self.primary_network)
+            .unwrap()
+            .user_wallet
+            .clone()
+            .unwrap()
     }
 }

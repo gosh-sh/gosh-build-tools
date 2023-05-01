@@ -1,3 +1,4 @@
+mod build;
 mod config;
 mod crypto;
 mod init;
@@ -15,11 +16,15 @@ async fn main() -> anyhow::Result<()> {
         .about("GOSH cli tool")
         .version(version)
         .subcommand(Command::new("init").about("Start GOSH onboarding"))
+        .subcommand(Command::new("build").about("Run gosh-build-cli"))
         .get_matches();
 
     match matches.subcommand() {
         Some(("init", _)) => {
             init::init_command().await?;
+        }
+        Some(("build", _)) => {
+            build::build_command().await?;
         }
         _ => {
             anyhow::bail!("Wrong subcommand");

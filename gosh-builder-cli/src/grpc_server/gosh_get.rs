@@ -1,4 +1,7 @@
-use crate::{git_cache::registry::GitCacheRegistry, sbom::Sbom};
+use crate::{
+    git_cache::registry::GitCacheRegistry,
+    sbom::{gosh_classification::GoshClassification, Sbom},
+};
 use gosh_builder_grpc_api::proto::{
     gosh_get_server::GoshGet, CommitRequest, CommitResponse, FileRequest, FileResponse,
 };
@@ -38,10 +41,11 @@ impl GoshGet for GoshGetService {
         {
             Ok(body) => {
                 // TODO: (maybe?) convert request.commit to canonical hash
-                self.sbom
-                    .lock()
-                    .await
-                    .append(format!("{} {}", &request.gosh_url, &request.commit));
+
+                self.sbom.lock().await.append(
+                    GoshClassification::Commit,
+                    format!("{}:{}", &request.gosh_url, &request.commit),
+                );
                 return Ok(tonic::Response::new(CommitResponse { body }));
             }
             Err(error) => return Err(tonic::Status::internal(format!("{:?}", error))),
@@ -60,10 +64,13 @@ impl GoshGet for GoshGetService {
         {
             Ok(body) => {
                 // TODO: (maybe?) convert request.commit to canonical hash
-                self.sbom.lock().await.append(format!(
-                    "{} {} {}",
-                    &request.gosh_url, &request.commit, &request.path
-                ));
+                self.sbom.lock().await.append(
+                    GoshClassification::File,
+                    format!(
+                        "{}:{}:{}",
+                        &request.gosh_url, &request.commit, &request.path
+                    ),
+                );
                 return Ok(tonic::Response::new(FileResponse { body }));
             }
             Err(error) => return Err(tonic::Status::internal(format!("{:?}", error))),

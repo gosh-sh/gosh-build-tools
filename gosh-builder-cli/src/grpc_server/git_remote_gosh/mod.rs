@@ -1,6 +1,9 @@
 mod git_remote_process_pool;
 
-use crate::{grpc_server::git_remote_gosh::git_remote_process_pool::GitRemoteProces, sbom::Sbom};
+use crate::{
+    grpc_server::git_remote_gosh::git_remote_process_pool::GitRemoteProces,
+    sbom::{gosh_classification::GoshClassification, Sbom},
+};
 use git_remote_process_pool::GitRemotePool;
 use gosh_builder_grpc_api::proto::{
     git_remote_gosh_server::GitRemoteGosh, CommandRequest, CommandResponse, GetArchiveRequest,
@@ -33,7 +36,10 @@ impl GitRemoteGosh for GitRemoteGoshService {
         tracing::debug!("gRPC: spawn");
         let request = grpc_request.into_inner();
 
-        self.sbom.lock().await.append(request.args.join(" "));
+        self.sbom
+            .lock()
+            .await
+            .append(GoshClassification::Repository, request.args.join(":"));
 
         let process = GitRemoteProces::spawn(&request.id, request.args).await;
         self.gosh_remote_pool

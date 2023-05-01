@@ -13,8 +13,6 @@ use crate::git_cache::registry::GitCacheRegistry;
 use crate::{docker_builder::GoshBuilder, sbom::Sbom};
 use gosh_builder_config::GoshConfig;
 use std::{
-    fs::File,
-    io::Write,
     net::{IpAddr, Ipv4Addr, SocketAddr},
     sync::Arc,
 };
@@ -66,11 +64,11 @@ async fn main() -> anyhow::Result<()> {
     stop_grpc_server();
 
     tracing::info!("Writing SBOM...");
-    let mut sbom_file = File::create("sbom.log")?;
-    for s in sbom.lock().await.inner.iter() {
-        writeln!(sbom_file, "{}", s)?;
-    }
-    sbom_file.flush()?;
+
+    match std::env::var("SBOM_OUT") {
+        Ok(path) => sbom.lock().await.save_to(path).await?,
+        Err(_) => sbom.lock().await.save_to("sbom.spdx").await?,
+    };
     tracing::info!("SBOM's ready");
 
     Ok(())

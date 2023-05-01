@@ -1,8 +1,7 @@
 pub mod registry;
 
-use std::{collections::hash_map::DefaultHasher, hash::Hasher, path::PathBuf, process::Stdio};
-
 use crate::{tracing_pipe::MapPerLine, zstd::ZstdReadToEnd};
+use std::{collections::hash_map::DefaultHasher, hash::Hasher, path::PathBuf, process::Stdio};
 
 #[derive(Debug)]
 struct GitCacheRepo {
@@ -11,16 +10,11 @@ struct GitCacheRepo {
 }
 
 impl GitCacheRepo {
-    /// # Panics
-    /// If the current directory doesn't exists or unaccessable
     fn from(url: String) -> Self {
-        let hash = hex_hash(&url);
-
-        let git_dir = std::env::current_dir()
-            .expect("current dir should exist and accessable")
-            .join(".git-cache")
-            .join(hash);
-
+        let repo_url_hash = hex_hash(&url);
+        let git_dir = dirs::cache_dir()
+            .unwrap_or(PathBuf::from(".cache"))
+            .join(repo_url_hash);
         Self { git_dir, url }
     }
 
@@ -58,8 +52,7 @@ impl GitCacheRepo {
             }
         } else {
             // git clone
-            std::fs::create_dir_all(&self.git_dir)
-                .expect("create specific directories and their parents");
+            std::fs::create_dir_all(&self.git_dir)?;
 
             tracing::debug!("{:?}", &self.git_dir);
             let mut git_clone_process = tokio::process::Command::new("git")
