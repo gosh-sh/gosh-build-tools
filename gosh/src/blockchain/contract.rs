@@ -16,9 +16,9 @@ impl Contract {
         }
     }
 
-    pub fn set_keys(&mut self, keypair: KeyPair) {
-        self.keypair = Some(keypair);
-    }
+    // pub fn set_keys(&mut self, keypair: KeyPair) {
+    //     self.keypair = Some(keypair);
+    // }
 
     pub fn get_keys(&self) -> Option<KeyPair> {
         self.keypair.clone()

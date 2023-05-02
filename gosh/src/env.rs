@@ -10,9 +10,9 @@ use std::{env, ffi::OsStr, time::Duration};
 ///
 /// A result containing the parsed value, or an error if the value could not be
 /// parsed or the environment variable was not found.
-pub fn parse_env<T: FromEnv>(key: impl AsRef<OsStr>) -> anyhow::Result<T> {
-    FromEnv::from_env(key)
-}
+// pub fn parse_env<T: FromEnv>(key: impl AsRef<OsStr>) -> anyhow::Result<T> {
+//     FromEnv::from_env(key)
+// }
 
 /// Parses the value of an environment variable `key` as a specified type `Q`,
 /// or returns a default value if the environment variable is not set.
@@ -44,7 +44,7 @@ pub trait FromEnv: Sized {
     ///
     /// A result containing the parsed value, or an error if the value could not
     /// be parsed or the environment variable was not found.
-    fn from_env(key: impl AsRef<OsStr>) -> anyhow::Result<Self>;
+    // fn from_env(key: impl AsRef<OsStr>) -> anyhow::Result<Self>;
 
     /// Parses the value of an environment variable as the implementing type, or
     /// returns a default value if the environment variable is not set.
@@ -90,9 +90,9 @@ where
 macro_rules! from_str_from_env_int_impl {
     ($($t:ty)*) => {$(
         impl FromEnv for $t {
-            fn from_env(key: impl AsRef<OsStr>) -> anyhow::Result<Self> {
-                fetch_env(key, None, |s| s.parse::<$t>().map_err(anyhow::Error::from))
-            }
+            // fn from_env(key: impl AsRef<OsStr>) -> anyhow::Result<Self> {
+            //     fetch_env(key, None, |s| s.parse::<$t>().map_err(anyhow::Error::from))
+            // }
             fn from_env_or(key: impl AsRef<OsStr>, default: Self) -> anyhow::Result<Self> {
                 fetch_env(key, Some(default), |s| s.parse::<$t>().map_err(anyhow::Error::from))
             }
@@ -112,9 +112,9 @@ fn parse_duration(raw_str: impl AsRef<str>) -> anyhow::Result<Duration> {
 }
 
 impl FromEnv for Duration {
-    fn from_env(key: impl AsRef<OsStr>) -> anyhow::Result<Self> {
-        fetch_env(key, None, parse_duration)
-    }
+    // fn from_env(key: impl AsRef<OsStr>) -> anyhow::Result<Self> {
+    //     fetch_env(key, None, parse_duration)
+    // }
     fn from_env_or(key: impl AsRef<OsStr>, default: Self) -> anyhow::Result<Self> {
         fetch_env(key, Some(default), parse_duration)
     }
