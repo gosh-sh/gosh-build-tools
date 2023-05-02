@@ -5,6 +5,7 @@ use crate::blockchain::ever_client::EverClient;
 use crate::blockchain::r#const::SYSTEM_CONTRACT_ADDESS;
 use serde_json::json;
 use std::time::Duration;
+use colored::Colorize;
 use tokio::time::sleep;
 
 const PROFILE_CHECK_ATTEMPTS: i32 = 10;
@@ -58,8 +59,8 @@ pub async fn deploy_profile(
     pubkey: &str,
 ) -> anyhow::Result<()> {
     println!("Start deployment of the profile:");
-    println!("  username: {}", username);
-    println!("  pubkey: {}", pubkey);
+    println!("  username: {}", username.bright_blue());
+    println!("  pubkey: {}", pubkey.bright_blue());
     let pubkey = format!("0x{}", pubkey);
     let address = get_profile_address(ever_client, username).await?;
     let system_contract = Contract::new(SYSTEM_CONTRACT_ADDESS, SYSTEM);
@@ -89,6 +90,6 @@ pub async fn deploy_profile(
             anyhow::bail!("Failed to deploy user profile");
         }
     }
-    println!("Profile was successfully deployed");
+    println!("{}", "\nProfile was successfully deployed\n".green());
     Ok(())
 }

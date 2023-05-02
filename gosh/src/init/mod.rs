@@ -6,6 +6,7 @@ use std::io::Write;
 use std::path::Path;
 use std::process::exit;
 use tokio::process::Command;
+use colored::Colorize;
 
 use ton_client::crypto::KeyPair;
 
@@ -50,7 +51,7 @@ async fn generate_config() -> anyhow::Result<Config> {
                     Err(e) => return Err(e),
                     Ok(true) => keys,
                     Ok(false) => {
-                        println!("Username does already exist and your seed phrase is not correct for this profile.");
+                        println!("{}", "\nUsername does already exist and your seed phrase is not correct for this profile.\n".red());
                         println!("Please create a unique username or find your old seed phrase.");
                         continue;
                     }
@@ -60,13 +61,13 @@ async fn generate_config() -> anyhow::Result<Config> {
             }
         } else {
             if profile_exists {
-                println!("Username does already exist, please create a unique username.");
+                println!("{}", "\nUsername does already exist, please create a unique username.\n".red());
                 continue;
             }
             println!("New seed phrase will be generated for you.");
             let seed = gen_seed_phrase()?;
-            println!("\nSeed: {seed}\n");
-            println!("Warning: write down and save your seed phrase in private location. Remember that if you lose it you will lose access to your profile.\n");
+            println!("\nSeed: {}\n", seed.bright_cyan());
+            println!("{}", "Warning: write down and save your seed phrase in private location. Remember that if you lose it you will lose access to your profile.\n".bright_red());
             let input: String = Input::new()
                 .with_prompt("Have you read and understand the warning? (Y/n)")
                 .interact_text()?;
@@ -92,9 +93,15 @@ async fn generate_config() -> anyhow::Result<Config> {
 pub async fn init_command() -> anyhow::Result<()> {
     let gosh_config = match Config::load() {
         Ok(config) => match config.check().await {
-            Ok(_) => config,
+            Ok(_) => {
+                let user_data = config.get_user_data();
+                println!("Your GOSH config parameters:");
+                println!("  username: {}", user_data.profile.bright_blue());
+                println!("  pubkey: {}", user_data.pubkey.bright_blue());
+                config
+            },
             Err(e) => {
-                println!("Your local GOSH config is invalid: {e}.");
+                println!("{}Your local GOSH config is invalid: {e}.", "Warning: ".bright_yellow());
                 let choice: String = Input::new()
                     .with_prompt("Do you want to go through the onboarding process locally? (Y/n)")
                     .with_initial_text("Y")
@@ -112,11 +119,12 @@ pub async fn init_command() -> anyhow::Result<()> {
 There was no GOSH config found on your PC.
 You can go through the onboarding process on web:
 
-    1. Go to https://app.gosh.sh/onboarding
+    1. Go to {}
     2. Create a new profile of sign in into an existing one
     3. Open Menu/Settings and save \"Git remote config\" into your $HOME/.gosh/config.json
 
-Otherwise you can pass onboarding locally.\n"
+Otherwise you can pass onboarding locally.\n",
+               "https://app.gosh.sh/onboarding".bright_green().underline()
             );
             let choice: String = Input::new()
                 .with_prompt("Do you want to go through the process locally? (Y/n)")
@@ -131,10 +139,6 @@ Otherwise you can pass onboarding locally.\n"
     };
 
     let user_data = gosh_config.get_user_data();
-    println!("Your GOSH config parameters:");
-    println!("username: {}", user_data.profile);
-    println!("pubkey: {}", user_data.pubkey);
-
     check_local_git_remotes(&user_data.profile).await?;
 
     create_gosh_yaml()?;
@@ -146,21 +150,22 @@ async fn check_local_git_remotes(profile: &str) -> anyhow::Result<()> {
     let remotes = Command::new("git").arg("remote").arg("-v").output().await?;
     let error_output = String::from_utf8_lossy(&remotes.stderr).to_string();
     if error_output.contains("not a git repository") {
-        println!("Seems like you are not inside a git repository.");
+        println!("{}", "\nSeems like you are not inside a git repository.\n".red());
         exit(0);
     }
 
     let output = String::from_utf8_lossy(&remotes.stdout).to_string();
     if !output.contains("gosh://") {
-        println!("Seems like your local repo does not have a remote url directed to GOSH.");
+        println!("\nSeems like your local repo does not have a remote url directed to GOSH.");
+        let link = format!("https://app.gosh.sh/o/{}/repos", profile).bright_green().underline();
         println!(
-            "Please go to https://app.gosh.sh/o/{}/repos to get link to the GOSH repository",
-            profile
+            "Please go to {} to get link to the GOSH repository",
+            link
         );
         println!("and add this link to the list of git remotes:");
-        println!(
-            "  `git remote add gosh gosh://{}/{}/<repo_name>`",
-            SYSTEM_CONTRACT_ADDESS, profile
+        println!("{}",
+            format!("  `git remote add gosh gosh://{}/{}/<repo_name>`",
+            SYSTEM_CONTRACT_ADDESS, profile).bright_yellow()
         );
         exit(0);
     }
@@ -173,7 +178,7 @@ fn create_gosh_yaml() -> anyhow::Result<()> {
     if !path.exists() {
         let mut file = File::create(GOSH_YAML_PATH)?;
         file.write_all(GOSH_YAML.as_bytes())?;
-        println!("Gosh.yaml file was successfully generated.");
+        println!("{}", "\nGosh.yaml file was successfully generated.\n".bright_green());
     } else {
         println!("You already have the Gosh.yaml file in the current directory.");
     }
