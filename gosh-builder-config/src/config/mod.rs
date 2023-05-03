@@ -23,7 +23,11 @@ impl GoshConfig {
             Dockerfile::Path { ref path } => {
                 let dockerfile_path =
                     clean_dockerfile_path(path, workdir.as_ref()).expect("clean dockerfile path");
-                std::fs::read_to_string(dockerfile_path).expect("read Dockerfile successful")
+                if !dockerfile_path.exists() {
+                    tracing::error!("Dockerfile not found: {}", dockerfile_path.display());
+                    panic!("Dockerfile not found: {}", dockerfile_path.display());
+                }
+                std::fs::read_to_string(dockerfile_path).expect("read Dockerfile")
             }
         });
         builder.tag(raw_config.tag);

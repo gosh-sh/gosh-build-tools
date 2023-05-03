@@ -1137,6 +1137,8 @@ dependencies = [
  "shellexpand",
  "tokio",
  "ton_client",
+ "tracing",
+ "tracing-subscriber",
 ]
 
 [[package]]

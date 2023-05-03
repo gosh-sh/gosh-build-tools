@@ -1,0 +1,59 @@
+#!/bin/bash
+
+error() {
+    echo "$@" 1>&2
+}
+
+{ # redirrect output to stderr
+
+    BUILD_DIR=$(pwd)/.build
+
+    rm -rf "$BUILD_DIR"
+    mkdir "$BUILD_DIR"
+
+    cd "$BUILD_DIR" || exit 1
+
+    GOSH_REPO="${*: -1}"
+    set -- "${@:1:$(($# - 1))}"
+    echo "cloning GOSH repo: $GOSH_REPO"
+
+    git clone "$GOSH_REPO" repo
+    # TODO: check out a specific commit
+
+    cd repo || exit 1
+
+    # ORIGINAL_SBOM="$BUILD_DIR"/repo/sbom.spdx.json
+
+    # if [ ! -f "$ORIGINAL_SBOM" ]; then
+    #     error ""
+    #     error "Error: Original SBOM '$ORIGINAL_SBOM' does not exist"
+    #     error ""
+    #     exit 2
+    # fi
+
+    # SBOM_OUT="$BUILD_DIR"/sbom.spdx.json
+    # export SBOM_OUT
+
+    RUST_LOG=info
+    export RUST_LOG
+
+    # gosh-builder-cli --config Gosh.yaml
+
+    # if cmp --quiet "$SBOM_OUT" "$ORIGINAL_SBOM"; then
+    #     error ""
+    #     error "SBOM matches the specification"
+    #     error ""
+    # else
+    #     error ""
+    #     error "Error: SBOM doesn't match the original specification"
+    #     error ""
+    #     exit 2
+    # fi
+
+    if ! gosh-builder-cli --validate; then
+        exit 2
+    fi
+
+} 1>&2
+
+echo "your-image-tag"
