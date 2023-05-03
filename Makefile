@@ -24,6 +24,7 @@ gosh-ubuntu: pb
 		--file images/Dockerfile \
 		.
 
+# TODO: make multiplatform build
 .PHONY: gosh-ubuntu-push
 gosh-ubuntu-push: pb
 	docker buildx build \
@@ -42,7 +43,6 @@ pb:
 .PHONY: clear
 clear:
 	rm -rf ./sbom.*
-	rm -rf ./.git-cache
 
 .PHONY: init
 init:

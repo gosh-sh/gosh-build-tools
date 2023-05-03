@@ -4,5 +4,6 @@
 /target
 .idea
 
-/sbom.log
+/sbom.spdx
+/sbom.spdx.json
 /.git-cache

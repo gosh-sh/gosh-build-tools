@@ -9,6 +9,8 @@ use std::fs::File;
 use std::io::Write;
 use std::path::Path;
 
+pub const SBOM_DEFAULT_FILE_NAME: &str = "sbom.spdx.json";
+
 #[derive(Debug, Default)]
 pub struct Sbom {
     pub inner: Vec<(GoshClassification, String)>,

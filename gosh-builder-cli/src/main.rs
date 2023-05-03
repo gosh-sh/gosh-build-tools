@@ -63,12 +63,12 @@ async fn main() -> anyhow::Result<()> {
     tracing::info!("Stoping build server...");
     stop_grpc_server();
 
-    tracing::info!("Writing SBOM...");
+    // SBOM
 
-    match std::env::var("SBOM_OUT") {
-        Ok(path) => sbom.lock().await.save_to(path).await?,
-        Err(_) => sbom.lock().await.save_to("sbom.spdx").await?,
-    };
+    let sbom_path = std::env::var("SBOM_OUT").unwrap_or(sbom::SBOM_DEFAULT_FILE_NAME.to_owned());
+
+    tracing::info!("Writing SBOM to {}", sbom_path);
+    sbom.lock().await.save_to(sbom_path).await?;
     tracing::info!("SBOM's ready");
 
     Ok(())
