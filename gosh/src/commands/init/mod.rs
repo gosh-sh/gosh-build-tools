@@ -101,10 +101,10 @@ pub async fn init_command() -> anyhow::Result<()> {
                 config
             },
             Err(e) => {
-                println!("{}Your local GOSH config is invalid: {e}.", "Warning: ".bright_yellow());
+                println!("Your local GOSH config is invalid: {e}.");
+                println!("{}", "\nWarning: if you complete the registration process locally, it will delete the current config file\n".bright_red());
                 let choice: String = Input::new()
                     .with_prompt("Do you want to go through the onboarding process locally? (Y/n)")
-                    .with_initial_text("Y")
                     .interact_text()?;
                 if choice != *"Y" {
                     println!("Hope to see you soon.");
