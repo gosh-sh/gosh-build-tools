@@ -20,7 +20,7 @@ RUN \
 
 FROM ubuntu:22.04
 
-RUN apt update && apt install -y jq ca-certificates git wget libssl3 libc6 curl
+RUN apt update && apt install -y jq ca-certificates git wget libssl3 libc6 curl netcat
 
 RUN wget -O - https://raw.githubusercontent.com/gosh-sh/gosh/dev/install.sh | bash -s
 

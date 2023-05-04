@@ -12,6 +12,7 @@ use crate::docker_builder::ImageBuilder;
 use crate::git_cache::registry::GitCacheRegistry;
 use crate::{docker_builder::GoshBuilder, sbom::Sbom};
 use gosh_builder_config::GoshConfig;
+use std::fs::File;
 use std::{
     net::{IpAddr, Ipv4Addr, SocketAddr},
     sync::Arc,
@@ -63,13 +64,32 @@ async fn main() -> anyhow::Result<()> {
     tracing::info!("Stoping build server...");
     stop_grpc_server();
 
-    tracing::info!("Writing SBOM...");
+    // SBOM
 
-    match std::env::var("SBOM_OUT") {
-        Ok(path) => sbom.lock().await.save_to(path).await?,
-        Err(_) => sbom.lock().await.save_to("sbom.spdx").await?,
-    };
-    tracing::info!("SBOM's ready");
+    // TODO: fix SBOM_OUT env var confusion in case of --validate
+
+    if cli_settings.validate {
+        tracing::info!("Validate SBOM...");
+        let old_bom = cyclonedx_bom::prelude::Bom::parse_from_json_v1_3(
+            File::open(sbom::SBOM_DEFAULT_FILE_NAME).expect("SBOM file exists"),
+        )
+        .expect("Failed to parse BOM");
+        let bom = sbom.lock().await.get_bom()?;
+        if bom != old_bom {
+            tracing::error!("SBOM validation fail");
+            anyhow::bail!("SBOM validation fail");
+        } else {
+            tracing::info!("SBOM validation success");
+            return Ok(());
+        }
+    } else {
+        let sbom_path =
+            std::env::var("SBOM_OUT").unwrap_or(sbom::SBOM_DEFAULT_FILE_NAME.to_owned());
+
+        tracing::info!("Writing SBOM to {}", sbom_path);
+        sbom.lock().await.save_to(sbom_path).await?;
+        tracing::info!("SBOM's ready");
+    }
 
     Ok(())
 }

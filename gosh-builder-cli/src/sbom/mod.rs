@@ -9,6 +9,8 @@ use std::fs::File;
 use std::io::Write;
 use std::path::Path;
 
+pub const SBOM_DEFAULT_FILE_NAME: &str = "sbom.spdx.json";
+
 #[derive(Debug, Default)]
 pub struct Sbom {
     pub inner: Vec<(GoshClassification, String)>,
@@ -19,7 +21,7 @@ impl Sbom {
         self.inner.push((component_type, raw_component));
     }
 
-    pub async fn save_to(&self, path: impl AsRef<Path>) -> anyhow::Result<()> {
+    pub fn get_bom(&self) -> anyhow::Result<Bom> {
         // Note: Every BOM generated should have a unique serial number,
         // even if the contents of the BOM being generated have not changed
         // over time. The process or tool responsible for creating the BOM
@@ -42,7 +44,7 @@ impl Sbom {
             )?);
             components.push(component);
         }
-        let bom = Bom {
+        Ok(Bom {
             serial_number: Some(serial_number),
             metadata: Some(Metadata {
                 tools: Some(Tools(vec![Tool {
@@ -53,10 +55,14 @@ impl Sbom {
             }),
             components: Some(Components(components)),
             ..Bom::default()
-        };
+        })
+    }
 
+    pub async fn save_to(&self, path: impl AsRef<Path>) -> anyhow::Result<()> {
+        // TODO: refactor this: write directly to file, not to a string
         let mut output = Vec::<u8>::new();
 
+        let bom = self.get_bom()?;
         bom.output_as_json_v1_3(&mut output)
             .expect("Failed to write BOM");
         let mut sbom_file = File::create(path)?;

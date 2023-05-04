@@ -18,9 +18,12 @@ pub struct GoshBuilder {
 impl ImageBuilder for GoshBuilder {
     async fn run(&self) -> anyhow::Result<()> {
         let mut command = Command::new("docker");
-        command.arg("buildx").arg("build");
+        command.arg("buildx");
+        command.arg("build");
         // command.arg("--progress=plain");
         command.arg("--no-cache");
+        // command.arg("--allow").arg("network.host");
+        // command.arg("--sbom").arg("true");
         command.arg("--network=host"); // TODO: fix network access
         if let Some(ref tag) = self.config.tag {
             command.arg("--tag").arg(tag);
@@ -36,9 +39,11 @@ impl ImageBuilder for GoshBuilder {
         command
             .arg("--build-arg")
             .arg("http_proxy=http://127.0.0.1:8000");
+        // .arg("http_proxy=http://host.docker.internal:8000");
         command
             .arg("--build-arg")
             .arg("https_proxy=http://127.0.0.1:8000");
+        // .arg("https_proxy=http://host.docker.internal:8000");
 
         command.arg("-"); // use stdin
         tracing::debug!("{:?}", command);
