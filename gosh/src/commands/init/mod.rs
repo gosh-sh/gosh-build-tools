@@ -1,17 +1,17 @@
 use crate::config::Config;
 use crate::crypto::{gen_seed_phrase, generate_keypair_from_mnemonic};
+use colored::Colorize;
 use dialoguer::Input;
 use std::fs::File;
 use std::io::Write;
 use std::path::Path;
 use std::process::exit;
 use tokio::process::Command;
-use colored::Colorize;
 
 use ton_client::crypto::KeyPair;
 
+use crate::blockchain::constants::SYSTEM_CONTRACT_ADDESS;
 use crate::blockchain::ever_client::create_client;
-use crate::blockchain::r#const::SYSTEM_CONTRACT_ADDESS;
 
 use crate::profile::{check_profile_pubkey, deploy_profile, does_profile_exist};
 
@@ -61,7 +61,10 @@ async fn generate_config() -> anyhow::Result<Config> {
             }
         } else {
             if profile_exists {
-                println!("{}", "\nUsername does already exist, please create a unique username.\n".red());
+                println!(
+                    "{}",
+                    "\nUsername does already exist, please create a unique username.\n".red()
+                );
                 continue;
             }
             println!("New seed phrase will be generated for you.");
@@ -99,7 +102,7 @@ pub async fn init_command() -> anyhow::Result<()> {
                 println!("  username: {}", user_data.profile.bright_blue());
                 println!("  pubkey: {}", user_data.pubkey.bright_blue());
                 config
-            },
+            }
             Err(e) => {
                 println!("Your local GOSH config is invalid: {e}.");
                 println!("{}", "\nWarning: if you complete the registration process locally, it will delete the current config file\n".bright_red());
@@ -124,7 +127,7 @@ You can go through the onboarding process on web:
     3. Open Menu/Settings and save \"Git remote config\" into your $HOME/.gosh/config.json
 
 Otherwise you can pass onboarding locally.\n",
-               "https://app.gosh.sh/onboarding".bright_green().underline()
+                "https://app.gosh.sh/onboarding".bright_green().underline()
             );
             let choice: String = Input::new()
                 .with_prompt("Do you want to go through the process locally? (Y/n)")
@@ -150,22 +153,28 @@ async fn check_local_git_remotes(profile: &str) -> anyhow::Result<()> {
     let remotes = Command::new("git").arg("remote").arg("-v").output().await?;
     let error_output = String::from_utf8_lossy(&remotes.stderr).to_string();
     if error_output.contains("not a git repository") {
-        println!("{}", "\nSeems like you are not inside a git repository.\n".red());
+        println!(
+            "{}",
+            "\nSeems like you are not inside a git repository.\n".red()
+        );
         exit(0);
     }
 
     let output = String::from_utf8_lossy(&remotes.stdout).to_string();
     if !output.contains("gosh://") {
         println!("\nSeems like your local repo does not have a remote url directed to GOSH.");
-        let link = format!("https://app.gosh.sh/o/{}/repos", profile).bright_green().underline();
-        println!(
-            "Please go to {} to get link to the GOSH repository",
-            link
-        );
+        let link = format!("https://app.gosh.sh/o/{}/repos", profile)
+            .bright_green()
+            .underline();
+        println!("Please go to {} to get link to the GOSH repository", link);
         println!("and add this link to the list of git remotes:");
-        println!("{}",
-            format!("  `git remote add gosh gosh://{}/{}/<repo_name>`",
-            SYSTEM_CONTRACT_ADDESS, profile).bright_yellow()
+        println!(
+            "{}",
+            format!(
+                "  `git remote add gosh gosh://{}/{}/<repo_name>`",
+                SYSTEM_CONTRACT_ADDESS, profile
+            )
+            .bright_yellow()
         );
         exit(0);
     }
@@ -178,7 +187,10 @@ fn create_gosh_yaml() -> anyhow::Result<()> {
     if !path.exists() {
         let mut file = File::create(GOSH_YAML_PATH)?;
         file.write_all(GOSH_YAML.as_bytes())?;
-        println!("{}", "\nGosh.yaml file was successfully generated.\n".bright_green());
+        println!(
+            "{}",
+            "\nGosh.yaml file was successfully generated.\n".bright_green()
+        );
     } else {
         println!("You already have the Gosh.yaml file in the current directory.");
     }

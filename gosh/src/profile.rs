@@ -1,11 +1,11 @@
 use crate::abi::{PROFILE, SYSTEM};
 use crate::blockchain::call::{call_function, call_getter, is_account_active};
+use crate::blockchain::constants::SYSTEM_CONTRACT_ADDESS;
 use crate::blockchain::contract::Contract;
 use crate::blockchain::ever_client::EverClient;
-use crate::blockchain::r#const::SYSTEM_CONTRACT_ADDESS;
+use colored::Colorize;
 use serde_json::json;
 use std::time::Duration;
-use colored::Colorize;
 use tokio::time::sleep;
 
 const PROFILE_CHECK_ATTEMPTS: i32 = 10;
