@@ -1,8 +1,11 @@
 mod commands;
+mod blockchain;
 mod config;
 mod crypto;
-mod ever_client;
 mod log;
+mod profile;
+mod env;
+mod abi;
 
 use clap::{Arg, ArgAction};
 

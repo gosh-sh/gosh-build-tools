@@ -1,6 +1,8 @@
 mod defaults;
 
+use crate::blockchain::ever_client::create_client;
 use crate::crypto::generate_keypair_from_secret;
+use crate::profile::check_profile_pubkey;
 use std::collections::HashMap;
 use std::io::{BufReader, Read, Write};
 use std::path::Path;
@@ -112,7 +114,7 @@ impl Config {
         }
     }
 
-    pub fn check_keys(&self) -> anyhow::Result<()> {
+    fn check_keys(&self) -> anyhow::Result<()> {
         let network = &self.primary_network;
         let network = self
             .networks
@@ -127,6 +129,28 @@ impl Config {
             anyhow::bail!("Config keypair is invalid");
         }
         Ok(())
+    }
+
+    pub async fn check(&self) -> anyhow::Result<()> {
+        self.check_keys()?;
+
+        let user_data = self.get_user_data();
+        let ever_client = create_client(&self)?;
+        match check_profile_pubkey(&ever_client, &user_data.profile, &user_data.pubkey).await {
+            Ok(true) => Ok(()),
+            Ok(false) => Err(anyhow::format_err!(
+                "pubkey is not correct for the specified profile"
+            )),
+            Err(e) => Err(e),
+        }
+    }
+
+    pub fn get_endpoints(&self) -> Vec<String> {
+        self.networks
+            .get(&self.primary_network)
+            .unwrap()
+            .endpoints
+            .clone()
     }
 
     pub fn get_user_data(&self) -> UserWalletConfig {
