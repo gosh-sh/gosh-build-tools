@@ -19,7 +19,6 @@ impl GoshGetService {
         Self {
             sbom,
             git_cache_registry,
-            ..Default::default()
         }
     }
 }

@@ -135,7 +135,7 @@ impl Config {
         self.check_keys()?;
 
         let user_data = self.get_user_data();
-        let ever_client = create_client(&self)?;
+        let ever_client = create_client(self)?;
         match check_profile_pubkey(&ever_client, &user_data.profile, &user_data.pubkey).await {
             Ok(true) => Ok(()),
             Ok(false) => Err(anyhow::format_err!(

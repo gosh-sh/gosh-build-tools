@@ -44,10 +44,10 @@ pub async fn call_getter(
     };
 
     let encoded = encode_message(
-        Arc::clone(&client),
+        Arc::clone(client),
         ParamsOfEncodeMessage {
             abi: contract.abi.clone(),
-            address: Some(String::from(contract.address.clone())),
+            address: Some(contract.address.clone()),
             call_set,
             signer: Signer::None,
             deploy_set: None,
@@ -58,7 +58,7 @@ pub async fn call_getter(
     .await?;
 
     let result = run_tvm(
-        Arc::clone(&client),
+        Arc::clone(client),
         ParamsOfRunTvm {
             message: encoded.message,
             account: boc,
@@ -108,15 +108,13 @@ pub async fn call_function(
         None => CallSet::some_with_function(function_name),
     };
     let signer = match contract.get_keys() {
-        Some(key_pair) => Signer::Keys {
-            keys: key_pair.to_owned(),
-        },
+        Some(keys) => Signer::Keys { keys },
         None => Signer::None,
     };
 
     let message_encode_params = ParamsOfEncodeMessage {
         abi: contract.abi.to_owned(),
-        address: Some(String::from(contract.address.clone())),
+        address: Some(contract.address.clone()),
         call_set,
         signer,
         deploy_set: None,

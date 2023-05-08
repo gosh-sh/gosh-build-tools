@@ -16,7 +16,7 @@ pub async fn get_profile_address(
 ) -> anyhow::Result<String> {
     let system_contract = Contract::new(SYSTEM_CONTRACT_ADDESS, SYSTEM);
     let res = call_getter(
-        &ever_client,
+        ever_client,
         &system_contract,
         "getProfileAddr",
         Some(json!({ "name": username })),
@@ -37,15 +37,15 @@ pub async fn check_profile_pubkey(
     let profile_contract = Contract::new(&profile_address, PROFILE);
     let pubkey = format!("0x{}", pubkey);
     let res = call_getter(
-        &ever_client,
+        ever_client,
         &profile_contract,
         "isPubkeyCorrect",
         Some(json!({ "pubkey": pubkey })),
     )
     .await?;
-    Ok(res["value0"]
+    res["value0"]
         .as_bool()
-        .ok_or(anyhow::format_err!("Failed to decode getter result"))?)
+        .ok_or(anyhow::format_err!("Failed to decode getter result"))
 }
 
 pub async fn does_profile_exist(ever_client: &EverClient, username: &str) -> anyhow::Result<bool> {

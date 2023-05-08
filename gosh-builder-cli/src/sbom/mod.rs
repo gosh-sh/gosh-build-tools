@@ -36,7 +36,7 @@ impl Sbom {
             let version = "1.0.0";
             let bom_ref = None;
             let mut component =
-                Component::new(component_type.to_component_type(), &name, version, bom_ref);
+                Component::new(component_type.to_component_type(), name, version, bom_ref);
             component.purl = Some(Purl::new(
                 "gosh",
                 &component.name.to_string(),
