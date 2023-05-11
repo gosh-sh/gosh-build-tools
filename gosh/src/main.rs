@@ -1,11 +1,11 @@
-mod commands;
+mod abi;
 mod blockchain;
+mod commands;
 mod config;
 mod crypto;
+mod env;
 mod log;
 mod profile;
-mod env;
-mod abi;
 
 use clap::{Arg, ArgAction};
 
@@ -22,6 +22,7 @@ async fn main() -> anyhow::Result<()> {
                 .about("Create a new GOSH Builder project in an existing directory"),
         )
         .subcommand(
+            // TODO: merge gosh-builder-cli and gosh
             clap::Command::new("build")
                 .disable_help_flag(true)
                 .disable_help_subcommand(true)
