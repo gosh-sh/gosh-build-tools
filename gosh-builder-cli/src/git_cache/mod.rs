@@ -14,6 +14,7 @@ impl GitCacheRepo {
         let repo_url_hash = hex_hash(&url);
         let git_dir = dirs::cache_dir()
             .unwrap_or(PathBuf::from(".cache"))
+            .join("gosh")
             .join(repo_url_hash);
         Self { git_dir, url }
     }
@@ -146,6 +147,24 @@ impl GitCacheRepo {
             anyhow::bail!("git-show process failed (usually it's because file doesn't exist)")
         }
     }
+    // async fn try_normalize_ref(&self, commit: impl AsRef<str>) -> anyhow::Result<String> {
+    //     let mut git_show_process = tokio::process::Command::new("git")
+    //         .arg("show")
+    //         .arg(format!("{}:{}", commit.as_ref(), file_path.as_ref()))
+    //         .current_dir(&self.git_dir)
+    //         .stdout(Stdio::piped())
+    //         .stderr(Stdio::piped())
+    //         .spawn()?;
+
+    //     if let Some(io) = git_show_process.stderr.take() {
+    //         io.map_per_line(|line| tracing::debug!("{}", line))
+    //     }
+
+    //     let Some(stdout) = git_show_process.stdout.take() else {
+    //         tracing::error!("unable to take STDOUT: url={}", &self.url);
+    //         anyhow::bail!("internal error");
+    //     };
+    // }
 }
 
 fn hex_hash<H>(hashable: &H) -> String

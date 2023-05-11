@@ -8,6 +8,7 @@ pub struct CliSettings {
     pub config_path: PathBuf,
     pub workdir: PathBuf,
     pub validate: bool,
+    pub quiet: bool,
     // pub proxy_addr: SocketAddr,
 }
 
@@ -20,6 +21,9 @@ struct BuilderCli {
     /// Validate image after build
     #[arg(long, default_value_t = false)]
     validate: bool,
+    /// Quiet mode (will print image ID in the end)
+    #[arg(long, default_value_t = false)]
+    quiet: bool,
     // #[arg(short, long)]
     // proxy_host: String,
     // #[arg(short, long)]
@@ -54,6 +58,7 @@ pub fn settings() -> anyhow::Result<CliSettings> {
         config_path: gosh_configfile,
         workdir: gosh_workdir,
         validate: args.validate,
+        quiet: args.quiet,
     };
 
     Ok(cli_config)

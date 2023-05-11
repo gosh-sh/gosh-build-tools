@@ -13,12 +13,11 @@ impl GitCacheRegistry {
         url: impl AsRef<str>,
         commit: impl AsRef<str>,
     ) -> anyhow::Result<Vec<u8>> {
-        self.get_or_create_repository(url)
-            .await?
-            .lock()
-            .await
-            .git_archive(commit)
-            .await
+        let repo = self.get_or_create_repository(url).await?;
+
+        let repo_lock = repo.lock().await;
+        // let commit = repo_lock.try_normalize_ref(commit).await?;
+        repo_lock.git_archive(commit).await
     }
 
     pub async fn git_show(

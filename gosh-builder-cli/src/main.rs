@@ -46,7 +46,7 @@ async fn main() -> anyhow::Result<()> {
         };
 
         gosh_builder
-            .run()
+            .run(cli_settings.quiet)
             .await
             .expect("image build successful finish");
 

@@ -6,7 +6,7 @@ use crate::tracing_pipe::MapPerLine;
 
 #[async_trait::async_trait]
 pub trait ImageBuilder {
-    async fn run(&self) -> anyhow::Result<()>;
+    async fn run(&self, quiet: bool) -> anyhow::Result<()>;
 }
 
 #[derive(Debug, Clone)]
@@ -16,7 +16,7 @@ pub struct GoshBuilder {
 
 #[async_trait::async_trait]
 impl ImageBuilder for GoshBuilder {
-    async fn run(&self) -> anyhow::Result<()> {
+    async fn run(&self, quiet: bool) -> anyhow::Result<()> {
         let mut command = Command::new("docker");
         command.arg("buildx");
         command.arg("build");
@@ -27,6 +27,10 @@ impl ImageBuilder for GoshBuilder {
         command.arg("--network=host"); // TODO: fix network access
         if let Some(ref tag) = self.config.tag {
             command.arg("--tag").arg(tag);
+        }
+
+        if quiet {
+            command.arg("--quiet");
         }
 
         // !WARNING! potential security breach
@@ -48,16 +52,14 @@ impl ImageBuilder for GoshBuilder {
         command.arg("-"); // use stdin
         tracing::debug!("{:?}", command);
 
-        let mut process = command
-            .stdin(Stdio::piped())
-            // .stdout(Stdio::piped())
-            // .stderr(Stdio::piped())
-            .spawn()?;
+        command.stdin(Stdio::piped());
+        command.stdout(Stdio::piped());
+        command.stderr(Stdio::piped());
 
-        // TODO: make it optional via envs
-        // if stdout/stderr are piped we redirect them to tracing
+        let mut process = command.spawn()?;
+
         if let Some(io) = process.stdout.take() {
-            io.map_per_line(|line| tracing::info!("{}", line))
+            io.map_per_line(|line| println!("{}", line))
         }
 
         if let Some(io) = process.stderr.take() {
@@ -71,6 +73,7 @@ impl ImageBuilder for GoshBuilder {
         stdin.flush().await?;
 
         process.wait().await?;
+
         Ok(())
     }
 }

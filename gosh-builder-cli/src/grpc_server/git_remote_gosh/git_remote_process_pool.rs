@@ -37,9 +37,9 @@ pub struct GitRemoteProces {
 
 impl GitRemoteProces {
     pub async fn spawn(id: impl AsRef<str>, args: Vec<String>) -> Self {
-        let git_context_dir: PathBuf = std::env::current_dir()
-            .expect("current dir expected")
-            .join(".git-cache")
+        let git_context_dir = dirs::cache_dir()
+            .unwrap_or(PathBuf::from(".cache"))
+            .join("gosh")
             .join(id.as_ref());
 
         std::fs::create_dir_all(git_context_dir.clone().as_path())

@@ -5,7 +5,7 @@ PROXY_PORT ?= 8000
 
 .PHONY: run
 run: gosh-ubuntu
-	cargo run --bin gosh-builder-cli -- --config hack/Gosh.yaml
+	cargo run --bin gosh-builder-cli -- --quiet --config hack/Gosh.yaml
 
 .PHONY: debug
 debug: gosh-ubuntu
@@ -20,7 +20,7 @@ gosh-ubuntu: pb
 	docker buildx build \
 		` # --progress=plain ` \
 		--build-arg BRANCH=dev \
-		--tag gosh-ubuntu:22.04 \
+		--tag gosh-ubuntu \
 		--file images/Dockerfile \
 		.
 

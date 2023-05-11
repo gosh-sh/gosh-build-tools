@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1.5.2
 
-FROM gosh-ubuntu:22.04
+FROM gosh-ubuntu
 
 WORKDIR /workdir
 
