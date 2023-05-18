@@ -7,3 +7,6 @@ members = [
     "gosh-builder-grpc-api",
     "gosh-get",
 ]
+
+[cargo-warnings]
+ignored-profile = "ignore"

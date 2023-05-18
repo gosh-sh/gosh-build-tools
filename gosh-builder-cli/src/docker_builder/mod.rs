@@ -1,3 +1,5 @@
+pub mod git_context;
+
 use gosh_builder_config::GoshConfig;
 use std::process::Stdio;
 use tokio::{io::AsyncWriteExt, process::Command};

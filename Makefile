@@ -5,7 +5,11 @@ PROXY_PORT ?= 8000
 
 .PHONY: run
 run: gosh-ubuntu
-	cargo run --bin gosh-builder-cli -- --quiet --config hack/Gosh.yaml
+	cargo run --bin gosh -- build --quiet --config hack/Gosh.yaml
+
+.PHONY: run-url
+run-url: gosh-ubuntu
+	cargo run --bin gosh -- build --quiet gosh://0:0d5c05d7a63f438b57ede179b7110d3e903f5be3b5f543d3d6743d774698e92c/awnion/telepresence-gosh
 
 .PHONY: debug
 debug: gosh-ubuntu

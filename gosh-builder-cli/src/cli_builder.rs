@@ -1,40 +1,75 @@
-mod cli;
-mod docker_builder;
-pub mod git_cache;
-mod grpc_server;
-mod log;
-mod sbom;
-mod tracing_pipe;
-pub mod utils;
-pub mod zstd;
-
-use crate::docker_builder::ImageBuilder;
-use crate::git_cache::registry::GitCacheRegistry;
-use crate::{docker_builder::GoshBuilder, sbom::Sbom};
+use crate::{
+    cli::{CliSettings, DEFAULT_CONFIG_PATH},
+    docker_builder::{GoshBuilder, ImageBuilder},
+    git_cache::registry::GitCacheRegistry,
+    grpc_server,
+    sbom::{self, Sbom},
+};
+use clap::ArgMatches;
 use gosh_builder_config::GoshConfig;
-use std::fs::File;
 use std::{
+    fs::File,
     net::{IpAddr, Ipv4Addr, SocketAddr},
+    path::PathBuf,
     sync::Arc,
 };
 use tokio::sync::Mutex;
-mod cli_builder;
 
-#[tokio::main]
-async fn main() -> anyhow::Result<()> {
-    log::init();
+pub fn cli_command() -> clap::Command {
+    clap::Command::new("build")
+        .about("Build GOSH image from `--config` or from [url]")
+        .arg(clap::arg!(-q --quiet "Suppress output"))
+        .arg(clap::arg!(--validate "Validate the result image"))
+        .arg(
+            clap::Arg::new("config")
+                .short('c')
+                .long("config")
+                .value_name("PATH")
+                .help("Config path (in case of GOSH url context it should be relative to the root)")
+                .default_value(DEFAULT_CONFIG_PATH),
+        )
+        .arg(clap::Arg::new("url").required(false))
+}
 
-    // TODO: cli via builder
-    let version = option_env!("GOSH_VERSION").unwrap_or(env!("CARGO_PKG_VERSION"));
-    let cli = crate::cli_builder::cli_command()
-        .about("Build Docker image from GOSH")
-        .version(version)
-        .color(clap::ColorChoice::Always);
-    crate::cli_builder::run(&cli.get_matches());
-    return Ok(());
+pub fn settings(matches: &ArgMatches) -> anyhow::Result<CliSettings> {
+    let mut gosh_configfile = PathBuf::from(
+        matches
+            .get_one::<String>("config")
+            .expect("should never fail due to `.default_value`"),
+    );
 
-    let cli_settings = cli::settings()?;
-    tracing::debug!("{:?}", cli_settings);
+    if !gosh_configfile.exists() {
+        panic!("Gosh config path doesn't exist");
+    }
+    gosh_configfile
+        .canonicalize()
+        .expect("gosh configfile path canonicalize");
+
+    if !gosh_configfile.is_absolute() {
+        gosh_configfile = std::env::current_dir()?.join(gosh_configfile);
+    }
+
+    let mut gosh_workdir = gosh_configfile.clone();
+    gosh_workdir.pop();
+
+    let context = match matches.try_get_one::<String>("url")? {
+        Some(gosh_url) => Some(gosh_url.parse()?),
+        None => None,
+    };
+
+    let cli_config = CliSettings {
+        config_path: gosh_configfile,
+        workdir: gosh_workdir,
+        validate: matches.get_flag("validate"),
+        quiet: matches.get_flag("quiet"),
+        context,
+    };
+
+    Ok(cli_config)
+}
+
+pub async fn run(matches: &ArgMatches) -> anyhow::Result<()> {
+    let cli_settings = settings(matches)?;
 
     let gosh_config = GoshConfig::from_file(&cli_settings.config_path, &cli_settings.workdir);
 

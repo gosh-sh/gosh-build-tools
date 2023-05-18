@@ -23,13 +23,23 @@ async fn main() -> anyhow::Result<()> {
         )
         .subcommand(
             // TODO: merge gosh-builder-cli and gosh
-            clap::Command::new("build")
-                .disable_help_flag(true)
-                .disable_help_subcommand(true)
-                .trailing_var_arg(true)
-                .allow_hyphen_values(true)
-                .about("Build GOSH Image")
-                .arg(Arg::new("args").action(ArgAction::Set).num_args(..)),
+            gosh_builder_cli::cli_builder::cli_command(),
+        )
+        .subcommand(
+            clap::Command::new("pull")
+                .arg(
+                    Arg::new("install")
+                        .short('i')
+                        .long("install")
+                        .action(ArgAction::SetTrue),
+                )
+                .arg(Arg::new("gosh_url"))
+                .about("Pull GOSH repo"),
+        )
+        .subcommand(
+            clap::Command::new("install")
+                .arg(Arg::new("gosh_url"))
+                .about("Install GOSH repo"),
         )
         .subcommand_required(true)
         .get_matches();
