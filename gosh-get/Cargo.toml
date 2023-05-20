@@ -18,7 +18,7 @@ strip = true        # Automatically strip symbols from the binary.
 
 [dependencies]
 anyhow = "1.0.70"
-clap = { version = "4.2.2", features = ["derive"] }
+clap = { version = "4.2.2", features = ["derive", "env"] }
 gosh-builder-grpc-api = { path = "../gosh-builder-grpc-api/" }
 tar = "0.4.38"
 tokio = "1.27.0"

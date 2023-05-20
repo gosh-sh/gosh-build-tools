@@ -1,14 +1,14 @@
 pub mod git_context;
 
 use gosh_builder_config::GoshConfig;
-use std::process::Stdio;
+use std::{net::SocketAddr, process::Stdio};
 use tokio::{io::AsyncWriteExt, process::Command};
 
 use crate::tracing_pipe::MapPerLine;
 
 #[async_trait::async_trait]
 pub trait ImageBuilder {
-    async fn run(&self, quiet: bool) -> anyhow::Result<()>;
+    async fn run(&self, quiet: bool, proxy_socket: &SocketAddr) -> anyhow::Result<()>;
 }
 
 #[derive(Debug, Clone)]
@@ -18,7 +18,7 @@ pub struct GoshBuilder {
 
 #[async_trait::async_trait]
 impl ImageBuilder for GoshBuilder {
-    async fn run(&self, quiet: bool) -> anyhow::Result<()> {
+    async fn run(&self, quiet: bool, proxy_socket: &SocketAddr) -> anyhow::Result<()> {
         let mut command = Command::new("docker");
         command.arg("buildx");
         command.arg("build");
@@ -42,14 +42,19 @@ impl ImageBuilder for GoshBuilder {
         for (key, value) in &self.config.args {
             command.arg(key).arg(value);
         }
+
+        let proxy_addr = format!("{}:{}", proxy_socket.ip(), proxy_socket.port());
+
         command
             .arg("--build-arg")
-            .arg("http_proxy=http://127.0.0.1:8000");
-        // .arg("http_proxy=http://host.docker.internal:8000");
+            .arg(format!("http_proxy=http://{}", proxy_addr));
         command
             .arg("--build-arg")
-            .arg("https_proxy=http://127.0.0.1:8000");
-        // .arg("https_proxy=http://host.docker.internal:8000");
+            .arg(format!("https_proxy=http://{}", proxy_addr));
+
+        command
+            .arg("--build-arg")
+            .arg(format!("GOSH_HTTP_PROXY=http://{proxy_addr}"));
 
         command.arg("-"); // use stdin
         tracing::debug!("{:?}", command);

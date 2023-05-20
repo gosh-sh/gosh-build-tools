@@ -1,19 +1,18 @@
 mod cli;
-use std::{fs::File, io::Write};
 
-use cli::Commands;
+use clap::Parser;
+use cli::{Cli, Commands};
 use gosh_builder_grpc_api::proto::{gosh_get_client::GoshGetClient, CommitRequest, FileRequest};
-
-const GRPC_URL: &str = "http://localhost:8000";
+use std::{fs::File, io::Write};
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
     tracing_subscriber::fmt::init();
 
-    let app_cli = cli::init()?;
+    let app_cli = Cli::parse();
 
-    tracing::trace!("Start grpc client on: {}", GRPC_URL);
-    let mut grpc_client = GoshGetClient::connect(GRPC_URL).await?;
+    tracing::trace!("Connect to proxy: {}", app_cli.proxy_addr);
+    let mut grpc_client = GoshGetClient::connect(app_cli.proxy_addr).await?;
 
     match &app_cli.command {
         Commands::Commit { gosh_url, commit } => {

@@ -24,7 +24,7 @@ pub async fn run(
     // for shutdown
     let (tx, rx) = tokio::sync::oneshot::channel::<()>();
 
-    tracing::info!("Start gRPC");
+    tracing::info!("Start gRPC on {}", address);
     let server = Server::builder()
         .add_service(GitRemoteGoshServer::new(git_remote_gosh_service))
         .add_service(GoshGetServer::new(gosh_get_service))

@@ -25,3 +25,6 @@ RUN apt update && apt install -y jq ca-certificates git wget libssl3 libc6 curl 
 RUN wget -O - https://raw.githubusercontent.com/gosh-sh/gosh/dev/install.sh | bash -s
 
 COPY --link --from=gosh-get-build /usr/local/cargo/bin/gosh-get /usr/local/bin/gosh-get
+
+ONBUILD ARG GOSH_HTTP_PROXY
+ONBUILD ENV GOSH_HTTP_PROXY=$GOSH_HTTP_PROXY

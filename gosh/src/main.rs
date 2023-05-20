@@ -23,7 +23,7 @@ async fn main() -> anyhow::Result<()> {
         )
         .subcommand(
             // TODO: merge gosh-builder-cli and gosh
-            gosh_builder_cli::cli_builder::cli_command(),
+            gosh_builder_cli::cli::cli_command(),
         )
         .subcommand(
             clap::Command::new("pull")
