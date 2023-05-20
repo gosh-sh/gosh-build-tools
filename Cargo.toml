@@ -2,7 +2,7 @@
 
 members = [
     "gosh",
-    "gosh-builder-cli",
+    "gosh-builder",
     "gosh-builder-config",
     "gosh-builder-grpc-api",
     "gosh-get",

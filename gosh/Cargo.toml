@@ -9,7 +9,7 @@ cached = "0.43.0"
 clap = "4.2.4"
 colored = "2.0.0"
 dialoguer = "0.10.4"
-gosh-builder-cli = { version = "0.1.0", path = "../gosh-builder-cli" }
+gosh-builder = { version = "0.1.0", path = "../gosh-builder" }
 hex = "0.4.3"
 openssl = { version = "=0.10.52", features = ["vendored"] }
 serde = { version = "1.0.160", features = ['derive'] }

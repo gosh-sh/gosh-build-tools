@@ -1135,7 +1135,7 @@ dependencies = [
  "clap",
  "colored",
  "dialoguer",
- "gosh-builder-cli",
+ "gosh-builder",
  "hex 0.4.3",
  "openssl",
  "serde",
@@ -1148,7 +1148,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "gosh-builder-cli"
+name = "gosh-builder"
 version = "0.1.0"
 dependencies = [
  "anyhow",
