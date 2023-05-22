@@ -206,31 +206,32 @@ pub async fn run(matches: &ArgMatches) -> anyhow::Result<()> {
 
     tracing::debug!("Dockerfile:\n{}", gosh_config.dockerfile);
 
-    tokio::spawn(async move {
+    let builder_exit_status = tokio::spawn(async move {
         tracing::info!("Start build...");
 
         let gosh_builder = GoshBuilder {
             config: gosh_config,
         };
 
-        gosh_builder
+        let inner_build_result = gosh_builder
             .run(cli_settings.quiet, &cli_settings.sbom_proxy_socket)
-            .await
-            .expect("image build successful finish");
+            .await;
 
         tracing::info!("End build...");
+        inner_build_result
     })
     .await
-    .unwrap();
-
-    // {
-    //     use tokio::io::AsyncBufReadExt;
-    //     println!("Press any key...");
-    //     tokio::io::stdin().read_u8().await?;
-    // }
+    .expect("gosh builder subprocess join")?;
 
     tracing::info!("Stoping build server...");
     stop_grpc_server();
+
+    if builder_exit_status.success() {
+        tracing::info!("Build successful");
+    } else {
+        let exit_code = builder_exit_status.code().unwrap_or(1);
+        anyhow::bail!("Docker build failed with exit code: {}", exit_code);
+    }
 
     // SBOM
 

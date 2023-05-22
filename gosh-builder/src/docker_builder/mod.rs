@@ -1,14 +1,17 @@
 pub mod git_context;
 
 use gosh_builder_config::GoshConfig;
-use std::{net::SocketAddr, process::Stdio};
+use std::{
+    net::SocketAddr,
+    process::{ExitStatus, Stdio},
+};
 use tokio::{io::AsyncWriteExt, process::Command};
 
 use crate::tracing_pipe::MapPerLine;
 
 #[async_trait::async_trait]
 pub trait ImageBuilder {
-    async fn run(&self, quiet: bool, proxy_socket: &SocketAddr) -> anyhow::Result<()>;
+    async fn run(&self, quiet: bool, proxy_socket: &SocketAddr) -> anyhow::Result<ExitStatus>;
 }
 
 #[derive(Debug, Clone)]
@@ -18,7 +21,7 @@ pub struct GoshBuilder {
 
 #[async_trait::async_trait]
 impl ImageBuilder for GoshBuilder {
-    async fn run(&self, quiet: bool, proxy_socket: &SocketAddr) -> anyhow::Result<()> {
+    async fn run(&self, quiet: bool, proxy_socket: &SocketAddr) -> anyhow::Result<ExitStatus> {
         let mut command = Command::new("docker");
         command.arg("buildx");
         command.arg("build");
@@ -59,28 +62,38 @@ impl ImageBuilder for GoshBuilder {
         command.arg("-"); // use stdin
         tracing::debug!("{:?}", command);
 
-        command.stdin(Stdio::piped());
-        command.stdout(Stdio::piped());
-        command.stderr(Stdio::piped());
+        if quiet {
+            command.stdin(Stdio::piped());
+            command.stdout(Stdio::inherit());
+            command.stderr(Stdio::inherit());
+        } else {
+            command.stdin(Stdio::piped());
+            command.stdout(Stdio::piped());
+            command.stderr(Stdio::piped());
+        }
 
         let mut process = command.spawn()?;
 
-        if let Some(io) = process.stdout.take() {
-            io.map_per_line(|line| println!("{}", line))
+        // stdout
+        if !quiet {
+            // IMPORTANT: allow to modify stdout only if not in quiet mode
+            if let Some(io) = process.stdout.take() {
+                io.map_per_line(|line| println!("{}", line))
+            }
         }
 
+        // stderr
         if let Some(io) = process.stderr.take() {
             io.map_per_line(|line| tracing::info!("{}", line))
         }
 
+        // stdin
         let Some(ref mut stdin) = process.stdin else {
             anyhow::bail!("Can't take stdin");
         };
         stdin.write_all(self.config.dockerfile.as_bytes()).await?;
         stdin.flush().await?;
 
-        process.wait().await?;
-
-        Ok(())
+        Ok(process.wait().await?)
     }
 }

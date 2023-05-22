@@ -1,0 +1,3 @@
+---
+dockerfile:
+  path: Dockerfile.fail_test

@@ -1,5 +1,7 @@
 pub mod registry;
 
+use tokio::process::Command;
+
 use crate::{tracing_pipe::MapPerLine, zstd::ZstdReadToEnd};
 use std::{collections::hash_map::DefaultHasher, hash::Hasher, path::PathBuf, process::Stdio};
 
@@ -25,7 +27,7 @@ impl GitCacheRepo {
             // try git pull
             tracing::info!("git-cache: repo dir exists, try to pull {}", self.url);
             tracing::debug!("{:?}", &self.git_dir);
-            let mut git_pull_process = tokio::process::Command::new("git")
+            let mut git_pull_process = Command::new("git")
                 .arg("pull")
                 .arg("--all")
                 .stdout(Stdio::piped())
@@ -56,7 +58,7 @@ impl GitCacheRepo {
             std::fs::create_dir_all(&self.git_dir)?;
 
             tracing::debug!("{:?}", &self.git_dir);
-            let mut git_clone_process = tokio::process::Command::new("git")
+            let mut git_clone_process = Command::new("git")
                 .arg("clone")
                 .arg(&self.url)
                 .arg(".") // clone into current dir
@@ -88,7 +90,7 @@ impl GitCacheRepo {
     }
 
     async fn git_archive(&self, commit: impl AsRef<str>) -> anyhow::Result<Vec<u8>> {
-        let mut git_archive_process = tokio::process::Command::new("git")
+        let mut git_archive_process = Command::new("git")
             .arg("archive")
             .arg("--format=tar")
             .arg(commit.as_ref())
@@ -121,7 +123,7 @@ impl GitCacheRepo {
         commit: impl AsRef<str>,
         file_path: impl AsRef<str>,
     ) -> anyhow::Result<Vec<u8>> {
-        let mut command = tokio::process::Command::new("git");
+        let mut command = Command::new("git");
         command
             .arg("show")
             .arg(format!("{}:{}", commit.as_ref(), file_path.as_ref()))
