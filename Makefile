@@ -63,7 +63,3 @@ init:
 .PHONY: install
 install:
 	cd gosh && cargo install -f --path .
-
-.PHONY: install-builder
-install-builder: install
-	cd gosh-builder-cli && cargo install -f --path .
