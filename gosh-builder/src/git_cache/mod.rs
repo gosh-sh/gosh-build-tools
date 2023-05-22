@@ -121,13 +121,16 @@ impl GitCacheRepo {
         commit: impl AsRef<str>,
         file_path: impl AsRef<str>,
     ) -> anyhow::Result<Vec<u8>> {
-        let mut git_show_process = tokio::process::Command::new("git")
+        let mut command = tokio::process::Command::new("git");
+        command
             .arg("show")
             .arg(format!("{}:{}", commit.as_ref(), file_path.as_ref()))
             .current_dir(&self.git_dir)
             .stdout(Stdio::piped())
-            .stderr(Stdio::piped())
-            .spawn()?;
+            .stderr(Stdio::piped());
+
+        tracing::trace!("{:?}", command);
+        let mut git_show_process = command.spawn()?;
 
         if let Some(io) = git_show_process.stderr.take() {
             io.map_per_line(|line| tracing::debug!("{}", line))

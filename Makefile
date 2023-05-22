@@ -13,11 +13,19 @@ run-url: gosh-ubuntu
 
 .PHONY: debug
 debug: gosh-ubuntu
-	RUST_LOG=info,gosh_builder_cli=debug cargo run --bin gosh -- build -s ${PROXY_IP}:${PROXY_PORT} -q -c hack/Gosh.yaml
+	RUST_LOG=info,gosh_builder=debug cargo run --bin gosh -- build -s ${PROXY_IP}:${PROXY_PORT} -q -c hack/Gosh.yaml
+
+.PHONY: debug-url
+debug-url: gosh-ubuntu
+	RUST_LOG=info,gosh_builder=debug cargo run --bin gosh -- build -s ${PROXY_IP}:${PROXY_PORT} -q gosh://0:0d5c05d7a63f438b57ede179b7110d3e903f5be3b5f543d3d6743d774698e92c/awnion/telepresence-gosh
 
 .PHONY: trace
 trace: gosh-ubuntu
-	RUST_LOG=info,gosh_builder_cli=trace cargo run --bin gosh -- build -s ${PROXY_IP}:${PROXY_PORT} -q -c hack/Gosh.yaml
+	RUST_LOG=info,gosh_builder=trace cargo run --bin gosh -- build -s ${PROXY_IP}:${PROXY_PORT} -q -c hack/Gosh.yaml
+
+.PHONY: trace-url
+trace-url: gosh-ubuntu
+	RUST_LOG=info,gosh_builder=trace cargo run --bin gosh -- build -s ${PROXY_IP}:${PROXY_PORT} -q gosh://0:0d5c05d7a63f438b57ede179b7110d3e903f5be3b5f543d3d6743d774698e92c/awnion/telepresence-gosh
 
 .PHONY: gosh-ubuntu
 gosh-ubuntu: pb

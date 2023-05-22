@@ -42,4 +42,8 @@ impl RawGoshConfig {
 
         Ok(serde_yaml::from_reader(File::open(config_path)?)?)
     }
+
+    pub fn try_from_reader(rdr: impl std::io::Read) -> anyhow::Result<Self> {
+        Ok(serde_yaml::from_reader(rdr)?)
+    }
 }

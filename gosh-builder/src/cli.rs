@@ -5,7 +5,10 @@ use crate::{
     sbom::{self, Sbom},
 };
 use clap::ArgMatches;
-use gosh_builder_config::GoshConfig;
+use gosh_builder_config::{
+    raw_config::{Dockerfile, RawGoshConfig},
+    GoshConfig, GoshConfigBuilder,
+};
 use std::{fs::File, net::SocketAddr, path::PathBuf, sync::Arc};
 use tokio::sync::Mutex;
 
@@ -93,9 +96,6 @@ pub fn settings(matches: &ArgMatches) -> anyhow::Result<CliSettings> {
         if gosh_configfile.is_absolute() {
             anyhow::bail!("in case of gosh remote url `--config` path should be relative to the root of the repository");
         }
-        gosh_configfile
-            .canonicalize()
-            .expect("gosh configfile path canonicalize");
     }
 
     // TODO: git registry checks
@@ -124,13 +124,78 @@ pub fn settings(matches: &ArgMatches) -> anyhow::Result<CliSettings> {
     Ok(cli_config)
 }
 
+async fn gosh_config(
+    cli_settings: &CliSettings,
+    git_cache_registry: &GitCacheRegistry,
+) -> anyhow::Result<GoshConfig> {
+    let Some(ref git_context) = &cli_settings.git_context else {
+        return Ok(GoshConfig::from_file(
+            &cli_settings.config_path,
+            &cli_settings.workdir,
+        ))
+    };
+
+    // TODO: fix pessimistic cases
+    // 1. abs paths (config shouldn't be absolute)
+    // 2. config path can lead out of the git repo dir like '../../../../' many times
+
+    let file_path = PathBuf::from(git_context.sub_dir.as_str()).join(&cli_settings.config_path);
+    tracing::debug!("Config file_path: {:?}", file_path);
+
+    let mut workdir = file_path.clone();
+    workdir.pop();
+    tracing::debug!("Config workdir: {:?}", workdir);
+
+    let raw_config = RawGoshConfig::try_from_reader(
+        zstd::decode_all(
+            git_cache_registry
+                .git_show(
+                    git_context.remote.as_str(),
+                    git_context.git_ref.as_str(),
+                    file_path.to_string_lossy(),
+                )
+                .await?
+                .as_slice(),
+        )?
+        .as_slice(),
+    )?;
+
+    let mut builder = GoshConfigBuilder::default();
+
+    builder.dockerfile(match raw_config.dockerfile {
+        Dockerfile::Content(content) => content,
+        Dockerfile::Path { ref path } => {
+            let dockerfile_path = workdir.join(path);
+            tracing::debug!("Dockerfile path: {:?}", dockerfile_path);
+            String::from_utf8(zstd::decode_all(
+                git_cache_registry
+                    .git_show(
+                        git_context.remote.as_str(),
+                        git_context.git_ref.as_str(),
+                        dockerfile_path.to_string_lossy(),
+                    )
+                    .await?
+                    .as_slice(),
+            )?)?
+        }
+    });
+    builder.tag(raw_config.tag);
+
+    if let Some(ref args) = raw_config.args {
+        builder.args(args.clone());
+    };
+
+    Ok(builder.build().expect("gosh config builder"))
+}
+
 pub async fn run(matches: &ArgMatches) -> anyhow::Result<()> {
     let cli_settings = settings(matches)?;
 
-    let gosh_config = GoshConfig::from_file(&cli_settings.config_path, &cli_settings.workdir);
+    let git_cache_registry = GitCacheRegistry::default();
+
+    let gosh_config = gosh_config(&cli_settings, &git_cache_registry).await?;
 
     let sbom = Arc::new(Mutex::new(Sbom::default()));
-    let git_cache_registry = GitCacheRegistry::default();
 
     let stop_grpc_server = grpc_server::run(
         cli_settings.sbom_proxy_socket,

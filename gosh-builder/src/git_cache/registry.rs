@@ -7,12 +7,19 @@ pub struct GitCacheRegistry {
     inner: Mutex<HashMap<String, Arc<Mutex<GitCacheRepo>>>>,
 }
 
+// TODO: make archivation optional
+
 impl GitCacheRegistry {
     pub async fn git_archive(
         &self,
         url: impl AsRef<str>,
         commit: impl AsRef<str>,
     ) -> anyhow::Result<Vec<u8>> {
+        tracing::debug!(
+            "git_archive: url={:?}, commit={:?}",
+            url.as_ref(),
+            commit.as_ref()
+        );
         let repo = self.get_or_create_repository(url).await?;
 
         let repo_lock = repo.lock().await;
@@ -26,6 +33,12 @@ impl GitCacheRegistry {
         commit: impl AsRef<str>,
         file_path: impl AsRef<str>,
     ) -> anyhow::Result<Vec<u8>> {
+        tracing::debug!(
+            "git_archive: url={:?} commit={:?} file_path={:?}",
+            url.as_ref(),
+            commit.as_ref(),
+            file_path.as_ref()
+        );
         self.get_or_create_repository(url)
             .await?
             .lock()
