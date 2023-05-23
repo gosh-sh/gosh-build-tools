@@ -23,5 +23,12 @@ fn main() -> Result<ExitCode, std::io::Error> {
         .expect("Failed to run the `gosh` executable.")
         .wait()
         // Try to exit with the same code as the child process.
-        .map(|child_status| ExitCode::from(child_status.code().unwrap_or(1).clamp(0, 255) as u8))
+        .map(|child_status| {
+            ExitCode::from(
+                child_status
+                    .code()
+                    .unwrap_or(1)
+                    .clamp(u8::MIN as i32, u8::MAX as i32) as u8,
+            )
+        })
 }

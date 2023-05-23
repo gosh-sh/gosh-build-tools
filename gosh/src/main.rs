@@ -7,8 +7,6 @@ mod env;
 mod log;
 mod profile;
 
-use clap::{Arg, ArgAction};
-
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
     log::init();
@@ -21,26 +19,8 @@ async fn main() -> anyhow::Result<()> {
             clap::Command::new("init")
                 .about("Create a new GOSH Builder project in an existing directory"),
         )
-        .subcommand(
-            // TODO: merge gosh-builder-cli and gosh
-            gosh_builder::cli::cli_command(),
-        )
-        .subcommand(
-            clap::Command::new("pull")
-                .arg(
-                    Arg::new("install")
-                        .short('i')
-                        .long("install")
-                        .action(ArgAction::SetTrue),
-                )
-                .arg(Arg::new("gosh_url"))
-                .about("Pull GOSH repo"),
-        )
-        .subcommand(
-            clap::Command::new("install")
-                .arg(Arg::new("gosh_url"))
-                .about("Install GOSH repo"),
-        )
+        .subcommand(commands::build::command())
+        .subcommand(commands::install::command())
         .subcommand_required(true)
         .get_matches();
 
@@ -48,8 +28,11 @@ async fn main() -> anyhow::Result<()> {
         Some(("init", _)) => {
             commands::init::init_command().await?;
         }
-        Some(("build", args)) => {
-            commands::build::build_command(args).await?;
+        Some((commands::build::COMMAND, args)) => {
+            commands::build::run(args).await?;
+        }
+        Some((commands::install::COMMAND, args)) => {
+            commands::install::run(args).await?;
         }
         _ => {
             anyhow::bail!("Wrong subcommand");
