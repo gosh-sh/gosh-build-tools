@@ -6,6 +6,7 @@ members = [
     "gosh-builder-config",
     "gosh-builder-grpc-api",
     "gosh-get",
+    "telepresence-build-gosh",
 ]
 
 [profile.dev]

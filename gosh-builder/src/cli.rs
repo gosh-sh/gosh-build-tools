@@ -26,19 +26,24 @@ pub struct CliSettings {
 }
 
 pub fn cli_command() -> clap::Command {
+    // IMPORTANT
+    // [ArgAction::Count] instead of [ArgAction::SetTrue] is intentional
+    // because `--quiet` and other flags can be used multiple times (like in `docker build`)
+    // and due to the chain of calls (e.g. telepresence -> bash_shortcut -> docker build)
+    // some important flags might appear multiple times
     clap::Command::new("build")
         .about("Build GOSH image from `--config` or from [url]")
         .arg(
             clap::Arg::new("quiet")
                 .short('q')
                 .long("quiet")
-                .action(clap::ArgAction::SetTrue)
+                .action(clap::ArgAction::Count)
                 .help("Suppress output"),
         )
         .arg(
             clap::Arg::new("validate")
                 .long("validate")
-                .action(clap::ArgAction::SetTrue)
+                .action(clap::ArgAction::Count)
                 .help("Validate the result image"),
         )
         .arg(
@@ -81,7 +86,8 @@ pub fn settings(matches: &ArgMatches) -> anyhow::Result<CliSettings> {
         // local
 
         if !gosh_configfile.exists() {
-            panic!("Gosh config path doesn't exist");
+            tracing::error!("Gosh config path doesn't exist");
+            anyhow::bail!("Gosh config path doesn't exist");
         }
 
         if !gosh_configfile.is_absolute() {
@@ -90,7 +96,7 @@ pub fn settings(matches: &ArgMatches) -> anyhow::Result<CliSettings> {
 
         gosh_configfile
             .canonicalize()
-            .expect("gosh configfile path canonicalize");
+            .map_err(|e| anyhow::anyhow!("gosh configfile path canonicalize: {}", e))?;
     } else {
         // gosh remote
         if gosh_configfile.is_absolute() {
@@ -107,8 +113,8 @@ pub fn settings(matches: &ArgMatches) -> anyhow::Result<CliSettings> {
         .expect("should never fail due to `.default_value`")
         .parse()?;
 
-    let validate = matches.get_flag("validate");
-    let quiet = matches.get_flag("quiet");
+    let validate = matches.get_count("validate") > 0;
+    let quiet = matches.get_count("quiet") > 0;
 
     let cli_config = CliSettings {
         config_path: gosh_configfile,

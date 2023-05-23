@@ -67,3 +67,4 @@ init:
 .PHONY: install
 install:
 	cd gosh && cargo install -f --path .
+	cd telepresence-build-gosh && cargo install -f --path .
