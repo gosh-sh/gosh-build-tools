@@ -7,8 +7,6 @@ use std::{
 };
 use tokio::{io::AsyncWriteExt, process::Command};
 
-use crate::tracing_pipe::MapPerLine;
-
 #[async_trait::async_trait]
 pub trait ImageBuilder {
     async fn run(&self, quiet: bool, proxy_socket: &SocketAddr) -> anyhow::Result<ExitStatus>;
@@ -27,8 +25,6 @@ impl ImageBuilder for GoshBuilder {
         command.arg("build");
         // command.arg("--progress=plain");
         command.arg("--no-cache");
-        // command.arg("--allow").arg("network.host");
-        // command.arg("--sbom").arg("true");
         command.arg("--network=host"); // TODO: fix network access
         if let Some(ref tag) = self.config.tag {
             command.arg("--tag").arg(tag);
@@ -54,38 +50,18 @@ impl ImageBuilder for GoshBuilder {
         command
             .arg("--build-arg")
             .arg(format!("https_proxy=http://{}", proxy_addr));
-
         command
             .arg("--build-arg")
-            .arg(format!("GOSH_HTTP_PROXY=http://{proxy_addr}"));
+            .arg(format!("GOSH_HTTP_PROXY=http://{}", proxy_addr));
 
         command.arg("-"); // use stdin
         tracing::debug!("{:?}", command);
 
-        if quiet {
-            command.stdin(Stdio::piped());
-            command.stdout(Stdio::inherit());
-            command.stderr(Stdio::inherit());
-        } else {
-            command.stdin(Stdio::piped());
-            command.stdout(Stdio::piped());
-            command.stderr(Stdio::piped());
-        }
+        command.stdin(Stdio::piped());
+        command.stdout(Stdio::inherit());
+        command.stderr(Stdio::inherit());
 
         let mut process = command.spawn()?;
-
-        // stdout
-        if !quiet {
-            // IMPORTANT: allow to modify stdout only if not in quiet mode
-            if let Some(io) = process.stdout.take() {
-                io.map_per_line(|line| println!("{}", line))
-            }
-        }
-
-        // stderr
-        if let Some(io) = process.stderr.take() {
-            io.map_per_line(|line| tracing::info!("{}", line))
-        }
 
         // stdin
         let Some(ref mut stdin) = process.stdin else {
