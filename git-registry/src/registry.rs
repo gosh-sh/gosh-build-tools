@@ -34,7 +34,7 @@ impl GitCacheRegistry {
         file_path: impl AsRef<str>,
     ) -> anyhow::Result<Vec<u8>> {
         tracing::debug!(
-            "git_archive: url={:?} commit={:?} file_path={:?}",
+            "git_show: url={:?} commit={:?} file_path={:?}",
             url.as_ref(),
             commit.as_ref(),
             file_path.as_ref()
@@ -44,6 +44,26 @@ impl GitCacheRegistry {
             .lock()
             .await
             .git_show(commit, file_path)
+            .await
+    }
+
+    pub async fn git_show_uncompressed(
+        &self,
+        url: impl AsRef<str>,
+        commit: impl AsRef<str>,
+        file_path: impl AsRef<str>,
+    ) -> anyhow::Result<Vec<u8>> {
+        tracing::debug!(
+            "git_show_uncompressed: url={:?} commit={:?} file_path={:?}",
+            url.as_ref(),
+            commit.as_ref(),
+            file_path.as_ref()
+        );
+        self.get_or_create_repository(url)
+            .await?
+            .lock()
+            .await
+            .git_show_uncompressed(commit, file_path)
             .await
     }
 

@@ -1,7 +1,7 @@
 use clap::ArgMatches;
+use git_registry::registry::GitCacheRegistry;
 use gosh_builder::{
     docker_builder::{git_context::GitContext, GoshBuilder, ImageBuilder},
-    git_cache::registry::GitCacheRegistry,
     grpc_server,
     sbom::{load_bom, Sbom, SBOM_DEFAULT_FILE_NAME},
 };
@@ -174,16 +174,15 @@ async fn gosh_config(
         Dockerfile::Path { ref path } => {
             let dockerfile_path = workdir.join(path);
             tracing::debug!("Dockerfile path: {:?}", dockerfile_path);
-            String::from_utf8(zstd::decode_all(
+            String::from_utf8(
                 git_cache_registry
-                    .git_show(
+                    .git_show_uncompressed(
                         git_context.remote.as_str(),
                         git_context.git_ref.as_str(),
                         dockerfile_path.to_string_lossy(),
                     )
-                    .await?
-                    .as_slice(),
-            )?)?
+                    .await?,
+            )?
         }
     });
     builder.tag(raw_config.tag);

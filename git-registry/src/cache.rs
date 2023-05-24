@@ -1,6 +1,6 @@
 use gosh_utils::{tracing_pipe::MapPerLine, zstd::ZstdReadToEnd};
 use std::{collections::hash_map::DefaultHasher, hash::Hasher, path::PathBuf, process::Stdio};
-use tokio::process::Command;
+use tokio::{io::AsyncReadExt, process::Command};
 
 #[derive(Debug)]
 pub(crate) struct GitCacheRepo {
@@ -145,6 +145,42 @@ impl GitCacheRepo {
 
         if git_show_process.wait().await?.success() {
             Ok(zstd_body)
+        } else {
+            anyhow::bail!("git-show process failed (usually it's because file doesn't exist)")
+        }
+    }
+
+    pub async fn git_show_uncompressed(
+        &self,
+        commit: impl AsRef<str>,
+        file_path: impl AsRef<str>,
+    ) -> anyhow::Result<Vec<u8>> {
+        let mut command = Command::new("git");
+        command
+            .arg("show")
+            .arg(format!("{}:{}", commit.as_ref(), file_path.as_ref()))
+            .current_dir(&self.git_dir)
+            .stdout(Stdio::piped())
+            .stderr(Stdio::piped());
+
+        tracing::trace!("{:?}", command);
+        let mut git_show_process = command.spawn()?;
+
+        if let Some(io) = git_show_process.stderr.take() {
+            io.map_per_line(|line| tracing::debug!("{}", line))
+        }
+
+        let Some(ref mut stdout) = git_show_process.stdout.take() else {
+            tracing::error!("unable to take STDOUT: url={}", &self.url);
+            anyhow::bail!("internal error");
+        };
+
+        let mut body = Vec::new();
+        stdout.read_to_end(&mut body).await?;
+        tracing::trace!("body: {:?}", &body);
+
+        if git_show_process.wait().await?.success() {
+            Ok(body)
         } else {
             anyhow::bail!("git-show process failed (usually it's because file doesn't exist)")
         }

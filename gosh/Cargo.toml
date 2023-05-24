@@ -9,6 +9,7 @@ cached = "0.43.0"
 clap = "4.3.0"
 colored = "2.0.0"
 dialoguer = "0.10.4"
+git-registry = { path = "../git-registry/" }
 gosh-builder = { path = "../gosh-builder" }
 gosh-builder-config = { path = "../gosh-builder-config" }
 gosh-utils = { path = "../gosh-utils" }

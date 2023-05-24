@@ -2,10 +2,10 @@ mod git_remote_gosh;
 mod gosh_get;
 
 use crate::{
-    git_cache::registry::GitCacheRegistry,
     grpc_server::{git_remote_gosh::GitRemoteGoshService, gosh_get::GoshGetService},
     sbom::Sbom,
 };
+use git_registry::registry::GitCacheRegistry;
 use gosh_builder_grpc_api::proto::{
     git_remote_gosh_server::GitRemoteGoshServer, gosh_get_server::GoshGetServer,
 };
