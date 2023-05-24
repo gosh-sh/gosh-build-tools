@@ -144,8 +144,8 @@ def prereleaseBinaries() {
             dir('.ci/scripts') {
                 withCredentials([string(credentialsId: 'github-gosh-release', variable: 'TOKEN')]) {
                     sh './create-github-release.sh $TOKEN ${APP_VERSION} ${COMMIT}'
-                    sh './github-upload-assets.sh $TOKEN ${APP_VERSION} /tmp/${JOB_NAME}/git-remote-gosh-linux-amd64.tar.gz application/gzip'
-                    sh './github-upload-assets.sh $TOKEN ${APP_VERSION} /tmp/${JOB_NAME}/git-remote-gosh-linux-arm64.tar.gz application/gzip'
+                    sh './github-upload-assets.sh $TOKEN ${APP_VERSION} /tmp/${JOB_NAME}/gosh-linux-amd64.tar.gz application/gzip'
+                    sh './github-upload-assets.sh $TOKEN ${APP_VERSION} /tmp/${JOB_NAME}/gosh-linux-arm64.tar.gz application/gzip'
                 }
             }
         }
