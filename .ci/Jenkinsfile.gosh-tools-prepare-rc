@@ -155,12 +155,10 @@ def prereleaseBinaries() {
 def prereleaseToolsDeliveryImage() {
     script {
         if (!params.DRYRUN) {
-            dir('tools-delivery-image') {
-                withCredentials([[$class: 'UsernamePasswordMultiBinding', credentialsId: 'teamgosh-dockerhub', usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD']]) {
-                    sh 'docker login -u $USERNAME -p $PASSWORD'
-                }
-                sh "make gosh-ubuntu-release"
+            withCredentials([[$class: 'UsernamePasswordMultiBinding', credentialsId: 'teamgosh-dockerhub', usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD']]) {
+                sh 'docker login -u $USERNAME -p $PASSWORD'
             }
+            sh "make gosh-ubuntu-release"
         }
     }
 }
