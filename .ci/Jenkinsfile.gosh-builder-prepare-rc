@@ -34,14 +34,14 @@ pipeline {
                 }
             }
         }
-        stage('Build: GOSH builder') {
+        stage('Build: GOSH CLI') {
             agent {
                 node {
                     label 'jenkins-main'
                 }
             }
             steps {
-                buildGosh()
+                buildGoshCli()
             }
         }
 
@@ -96,7 +96,7 @@ pipeline {
 ///////////////////////FUNCTIONS//////////////////////////////////
 
 // BUILD
-def buildGosh() {
+def buildGoshCli() {
     script {
         dir('gosh') {
             sh '''
