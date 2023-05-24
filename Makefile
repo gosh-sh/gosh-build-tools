@@ -52,6 +52,16 @@ gosh-ubuntu-push: pb
 		--push \
 		.
 
+gosh-ubuntu-release: pb
+	docker buildx build \
+		` # --progress=plain ` \
+		--no-cache \
+		--build-arg BRANCH=dev \
+		--tag teamgosh/gosh-ubuntu:22.04 \
+		--file images/Dockerfile \
+		--push \
+		.
+
 .PHONY: pb
 pb:
 	cd gosh-builder-grpc-api && cargo build

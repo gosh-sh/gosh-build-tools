@@ -159,7 +159,7 @@ def prereleaseToolsDeliveryImage() {
                 withCredentials([[$class: 'UsernamePasswordMultiBinding', credentialsId: 'teamgosh-dockerhub', usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD']]) {
                     sh 'docker login -u $USERNAME -p $PASSWORD'
                 }
-                sh "make gosh-ubuntu-push"
+                sh "make gosh-ubuntu-release"
             }
         }
     }
