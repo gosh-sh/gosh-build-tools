@@ -70,3 +70,7 @@ impl Sbom {
         Ok(())
     }
 }
+
+pub fn load_bom(reader: impl std::io::Read) -> anyhow::Result<Bom> {
+    Bom::parse_from_json_v1_3(reader).map_err(anyhow::Error::from)
+}

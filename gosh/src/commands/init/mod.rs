@@ -1,3 +1,5 @@
+use crate::blockchain::constants::SYSTEM_CONTRACT_ADDESS;
+use crate::blockchain::ever_client::create_client;
 use crate::config::Config;
 use crate::crypto::{gen_seed_phrase, generate_keypair_from_mnemonic};
 use colored::Colorize;
@@ -7,11 +9,7 @@ use std::io::Write;
 use std::path::Path;
 use std::process::exit;
 use tokio::process::Command;
-
 use ton_client::crypto::KeyPair;
-
-use crate::blockchain::constants::SYSTEM_CONTRACT_ADDESS;
-use crate::blockchain::ever_client::create_client;
 
 use crate::profile::{check_profile_pubkey, deploy_profile, does_profile_exist};
 

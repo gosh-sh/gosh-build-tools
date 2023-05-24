@@ -1,4 +1,4 @@
-pub fn init() {
+pub fn default_init() {
     tracing_subscriber::fmt()
         .with_env_filter(tracing_subscriber::EnvFilter::from_default_env())
         .event_format(

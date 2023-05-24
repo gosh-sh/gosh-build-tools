@@ -1,11 +1,13 @@
 [workspace]
 
 members = [
+    "git-registry",
     "gosh",
     "gosh-builder",
     "gosh-builder-config",
     "gosh-builder-grpc-api",
     "gosh-get",
+    "gosh-utils",
     "telepresence-build-gosh",
 ]
 

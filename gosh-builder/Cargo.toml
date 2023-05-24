@@ -19,6 +19,7 @@ serde_yaml = "0.9.21"
 tokio = { version = "1.27.0", features = ["full"] }
 gosh-builder-grpc-api = { path = "../gosh-builder-grpc-api/" }
 gosh-builder-config = { path = "../gosh-builder-config/" }
+gosh-utils = { path = "../gosh-utils/" }
 tonic = "0.9"
 bytes = "1.4.0"
 tar = "0.4.38"

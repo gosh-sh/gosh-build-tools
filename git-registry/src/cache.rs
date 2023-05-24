@@ -1,18 +1,15 @@
-pub mod registry;
-
-use tokio::process::Command;
-
 use gosh_utils::{tracing_pipe::MapPerLine, zstd::ZstdReadToEnd};
 use std::{collections::hash_map::DefaultHasher, hash::Hasher, path::PathBuf, process::Stdio};
+use tokio::process::Command;
 
 #[derive(Debug)]
-struct GitCacheRepo {
+pub(crate) struct GitCacheRepo {
     pub git_dir: PathBuf,
     pub url: String,
 }
 
 impl GitCacheRepo {
-    fn from(url: String) -> Self {
+    pub fn from(url: String) -> Self {
         let repo_url_hash = hex_hash(&url);
         let git_dir = dirs::cache_dir()
             .unwrap_or(PathBuf::from(".cache"))
@@ -21,7 +18,7 @@ impl GitCacheRepo {
         Self { git_dir, url }
     }
 
-    async fn update(&self) -> anyhow::Result<()> {
+    pub async fn update(&self) -> anyhow::Result<()> {
         if self.git_dir.exists() {
             // TODO: test that repo is not hijaked
             // try git pull
@@ -89,7 +86,7 @@ impl GitCacheRepo {
         Ok(())
     }
 
-    async fn git_archive(&self, commit: impl AsRef<str>) -> anyhow::Result<Vec<u8>> {
+    pub async fn git_archive(&self, commit: impl AsRef<str>) -> anyhow::Result<Vec<u8>> {
         let mut git_archive_process = Command::new("git")
             .arg("archive")
             .arg("--format=tar")
@@ -118,7 +115,7 @@ impl GitCacheRepo {
         }
     }
 
-    async fn git_show(
+    pub async fn git_show(
         &self,
         commit: impl AsRef<str>,
         file_path: impl AsRef<str>,

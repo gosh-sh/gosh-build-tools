@@ -4,12 +4,11 @@ mod commands;
 mod config;
 mod crypto;
 mod env;
-mod log;
 mod profile;
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
-    log::init();
+    gosh_utils::tracing::default_init();
 
     let version = option_env!("GOSH_VERSION").unwrap_or(env!("CARGO_PKG_VERSION"));
     let matches = clap::Command::new("gosh")
