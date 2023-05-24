@@ -29,7 +29,7 @@ pipeline {
                 git branch: "${COMMIT}", url: 'https://github.com/gosh-sh/gosh-build-tools.git'
                 checkout scm
                 script {
-                    env.APP_VERSION = sh(script: 'grep -E "^version[[:space:]]*=[[:space:]]*\"?[^\"=]*\"?" version gosh/Cargo.toml | cut -d "=" -f2 | tr -d " \\"\\n"', returnStdout: true).trim()
+                    env.APP_VERSION = sh(script: "grep -E \"^version[[:space:]]*=[[:space:]]*\\\"?[^\\\"=]*\\\"?\" gosh/Cargo.toml | cut -d '=' -f2 | tr -d ' \\\\\"\\n'", returnStdout: true).trim()
                     currentBuild.displayName = "${BUILD_NUMBER}_${COMMIT}_${APP_VERSION}"
                 }
             }
