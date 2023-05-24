@@ -41,10 +41,10 @@ steps:
 # Build
 # Linux
 - script: |
-    cargo build --release --bins --all
+    cargo build --release --bin gosh
     sudo apt install -y build-essential g++-x86-64-linux-gnu libc6-dev-amd64-cross g++-aarch64-linux-gnu libc6-dev-arm64-cross
     rustup target add aarch64-unknown-linux-gnu 
-    cargo build --release --target aarch64-unknown-linux-gnu --bins --all
+    cargo build --release --target aarch64-unknown-linux-gnu --bin gosh
     ls -la || true
     ls -la target || true
     ls -la target/* || true
