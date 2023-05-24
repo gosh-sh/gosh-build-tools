@@ -59,12 +59,12 @@ steps:
 ##################################
 # Publish 
 # Linux amd64 
-- publish: ./gosh/target/release/$(binName)
+- publish: ./target/release/$(binName)
   artifact: $(artifactNameAmd)
   displayName: Publish amd64 Linux
 
 # Linux arm64
-- publish: ./gosh/target/aarch64-unknown-linux-gnu/release/$(binName)
+- publish: ./target/aarch64-unknown-linux-gnu/release/$(binName)
   artifact: linux-arm64
   condition: eq( variables['Agent.OS'], 'Linux' )
   displayName: Publish arm64 Linux
