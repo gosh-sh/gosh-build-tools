@@ -6,14 +6,14 @@ use gosh_builder_grpc_api::proto::{
 use std::sync::Arc;
 use tokio::sync::Mutex;
 
-#[derive(Debug, Default)]
+#[derive(Debug)]
 pub struct GoshGetService {
     pub sbom: Arc<Mutex<Sbom>>,
-    pub git_cache_registry: GitCacheRegistry,
+    pub git_cache_registry: Arc<GitCacheRegistry>,
 }
 
 impl GoshGetService {
-    pub fn new(sbom: Arc<Mutex<Sbom>>, git_cache_registry: GitCacheRegistry) -> Self {
+    pub fn new(sbom: Arc<Mutex<Sbom>>, git_cache_registry: Arc<GitCacheRegistry>) -> Self {
         Self {
             sbom,
             git_cache_registry,

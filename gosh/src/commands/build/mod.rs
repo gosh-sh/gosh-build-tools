@@ -196,7 +196,7 @@ pub async fn build_image(
     quiet: bool,
     sbom_proxy_socket: SocketAddr,
     sbom: Arc<Mutex<Sbom>>,
-    git_registry: GitCacheRegistry,
+    git_registry: Arc<GitCacheRegistry>,
 ) -> anyhow::Result<String> {
     let stop_grpc_server = grpc_server::run(sbom_proxy_socket, sbom.clone(), git_registry).await?;
 
@@ -231,7 +231,7 @@ pub async fn build_image(
 pub async fn run(matches: &ArgMatches) -> anyhow::Result<()> {
     let build_settings = build_settings(matches)?;
 
-    let git_cache_registry = GitCacheRegistry::default();
+    let git_cache_registry = Arc::new(GitCacheRegistry::default());
 
     let gosh_config = gosh_config(&build_settings, &git_cache_registry).await?;
 
@@ -244,15 +244,35 @@ pub async fn run(matches: &ArgMatches) -> anyhow::Result<()> {
         build_settings.quiet,
         build_settings.sbom_proxy_socket,
         sbom.clone(),
-        git_cache_registry,
+        git_cache_registry.clone(),
     )
     .await?;
 
     // SBOM
 
-    // TODO: fix SBOM_OUT env var confusion in case of --validate
+    if let Some(ref git_context) = &build_settings.git_context {
+        tracing::info!("Validate SBOM...");
+        let file_path = PathBuf::from(git_context.sub_dir.as_str()).join(SBOM_DEFAULT_FILE_NAME);
+        let old_bom = load_bom(
+            git_cache_registry
+                .git_show_uncompressed(
+                    git_context.remote.as_str(),
+                    git_context.git_ref.as_str(),
+                    file_path.to_string_lossy(),
+                )
+                .await?
+                .as_slice(),
+        )?;
 
-    if build_settings.validate {
+        let bom = sbom.lock().await.get_bom()?;
+        if bom != old_bom {
+            tracing::error!("SBOM validation fail");
+            anyhow::bail!("SBOM validation fail");
+        } else {
+            tracing::info!("SBOM validation success");
+            return Ok(());
+        }
+    } else if build_settings.validate {
         tracing::info!("Validate SBOM...");
         let old_bom = load_bom(File::open(SBOM_DEFAULT_FILE_NAME)?)?;
         let bom = sbom.lock().await.get_bom()?;

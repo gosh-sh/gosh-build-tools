@@ -1,9 +1,8 @@
-use std::{fs::File, sync::Arc};
-
 use crate::commands::build::{build_image, build_settings, gosh_config};
 use clap::ArgMatches;
 use git_registry::registry::GitCacheRegistry;
 use gosh_builder::sbom::{load_bom, Sbom, SBOM_DEFAULT_FILE_NAME};
+use std::{fs::File, sync::Arc};
 use tokio::sync::Mutex;
 
 pub const COMMAND: &str = "install";
@@ -17,7 +16,7 @@ pub fn command() -> clap::Command {
 pub async fn run(matches: &ArgMatches) -> anyhow::Result<()> {
     let build_settings = build_settings(matches)?;
 
-    let git_cache_registry = GitCacheRegistry::default();
+    let git_cache_registry = Arc::new(GitCacheRegistry::default());
 
     let gosh_config = gosh_config(&build_settings, &git_cache_registry).await?;
 
@@ -30,7 +29,7 @@ pub async fn run(matches: &ArgMatches) -> anyhow::Result<()> {
         build_settings.quiet,
         build_settings.sbom_proxy_socket,
         sbom.clone(),
-        git_cache_registry,
+        git_cache_registry.clone(),
     )
     .await?;
 
@@ -44,6 +43,8 @@ pub async fn run(matches: &ArgMatches) -> anyhow::Result<()> {
     } else {
         tracing::info!("SBOM validation success");
     }
+
+    tracing::info!("Image ID: {}", image_id);
 
     // INSTALL
 

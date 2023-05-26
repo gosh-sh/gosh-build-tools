@@ -85,18 +85,28 @@ impl ImageBuilder for GoshBuilder {
 
         // IMPORTANT: we can do everything without tokio::spawn here becaue we
         // don't really need any parallalization in case of quiet mode
-        let image_hash = if quiet {
+        if quiet {
             // TODO: make it non-optional for non-quiet mode via --iidfile
-            let Some(ref mut stdout) = process.stdout.take() else {
+            let Some(mut stdout) = process.stdout.take() else {
                 anyhow::bail!("Can't take stdout");
             };
-            let mut out = String::new();
-            stdout.read_to_string(&mut out).await?;
-            Some(out.trim().to_owned())
+            let future_out: tokio::task::JoinHandle<anyhow::Result<String>> =
+                tokio::spawn(async move {
+                    let mut out = String::new();
+                    stdout.read_to_string(&mut out).await.unwrap();
+                    Ok(out)
+                });
+            let status = process.wait().await?;
+            let out = future_out.await??;
+
+            let image_hash = Some(out.trim().to_owned());
+            Ok(GoshBuildResult { status, image_hash })
         } else {
-            None
-        };
-        let status = process.wait().await?;
-        Ok(GoshBuildResult { status, image_hash })
+            let status = process.wait().await?;
+            Ok(GoshBuildResult {
+                status,
+                image_hash: None,
+            })
+        }
     }
 }
