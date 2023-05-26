@@ -68,7 +68,7 @@ pipeline {
             }
         }
 
-        stage('Prerelease: ToolsDeliveryImage | Docker Image') {
+        /*stage('Prerelease: ToolsDeliveryImage | Docker Image') {
             agent {
                 docker {
                     image 'jenkins-docker-agent:1'
@@ -80,7 +80,7 @@ pipeline {
                     prereleaseToolsDeliveryImage()
                 }
             }
-        }
+        }*/
 
     }
     post { 
