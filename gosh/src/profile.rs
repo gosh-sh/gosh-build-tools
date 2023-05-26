@@ -91,6 +91,6 @@ pub async fn deploy_profile(
             anyhow::bail!("Failed to deploy user profile");
         }
     }
-    println!("{}", "\nProfile was successfully deployed\n".green());
+    println!("{}", "\nProfile was successfully deployed\n".bright_green());
     Ok(())
 }

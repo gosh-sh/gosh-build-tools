@@ -45,12 +45,16 @@ async fn generate_config() -> anyhow::Result<Config> {
 
             let keys = generate_keypair_from_mnemonic(&user_seed)?;
             if profile_exists {
+                println!("Profile with this username already exists, checking that your seed phrase is correct...");
                 match check_profile_pubkey(&default_client, &username, &keys.public).await {
                     Err(e) => return Err(e),
-                    Ok(true) => keys,
+                    Ok(true) => {
+                        println!("{}", "Phrase is valid".bright_green());
+                        keys
+                    },
                     Ok(false) => {
-                        println!("{}", "\nUsername does already exist and your seed phrase is not correct for this profile.\n".red());
-                        println!("Please create a unique username or find your old seed phrase.");
+                        println!("{}", "\nUsername already exists and your seed phrase is not correct for this profile.\n".red());
+                        println!("{}", "Please create a unique username or find your old seed phrase.\n".bright_yellow());
                         continue;
                     }
                 }
@@ -61,14 +65,14 @@ async fn generate_config() -> anyhow::Result<Config> {
             if profile_exists {
                 println!(
                     "{}",
-                    "\nUsername does already exist, please create a unique username.\n".red()
+                    "\nUsername already exists, please create a unique username.\n".red()
                 );
                 continue;
             }
             println!("New seed phrase will be generated for you.");
             let seed = gen_seed_phrase()?;
             println!("\nSeed: {}\n", seed.bright_cyan());
-            println!("{}", "Warning: write down and save your seed phrase in private location. Remember that if you lose it you will lose access to your profile.\n".bright_red());
+            println!("{}", "Warning: write down and save your seed phrase in a safe location. Remember that if you lose it you will also lose access to your profile.\n".bright_red());
             let input: String = Input::new()
                 .with_prompt("Have you read and understand the warning? (Y/n)")
                 .interact_text()?;
@@ -121,10 +125,10 @@ There was no GOSH config found on your PC.
 You can go through the onboarding process on web:
 
     1. Go to {}
-    2. Create a new profile of sign in into an existing one
+    2. Create a new profile or sign in to an existing one
     3. Open Menu/Settings and save \"Git remote config\" into your $HOME/.gosh/config.json
 
-Otherwise you can pass onboarding locally.\n",
+Otherwise you can onboard locally.\n",
                 "https://app.gosh.sh/onboarding".bright_green().underline()
             );
             let choice: String = Input::new()
@@ -190,7 +194,7 @@ fn create_gosh_yaml() -> anyhow::Result<()> {
             "\nGosh.yaml file was successfully generated.\n".bright_green()
         );
     } else {
-        println!("You already have the Gosh.yaml file in the current directory.");
+        println!("{}", "\nYou already have the Gosh.yaml file in the current directory.".bright_yellow());
     }
     Ok(())
 }
