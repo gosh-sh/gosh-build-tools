@@ -21,7 +21,7 @@ steps:
 # Pre-requirements
 # Linux
 - script: |
-    sudo apt install -y protobuf-compiler
+    sudo apt install -y protobuf-compiler libssl-dev
   condition: eq( variables['Agent.OS'], 'Linux' )
   displayName: Install pre-requirements Linux
 
