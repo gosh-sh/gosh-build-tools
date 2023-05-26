@@ -16,7 +16,7 @@ use tonic::transport::Server;
 pub async fn run(
     address: SocketAddr,
     sbom: Arc<Mutex<Sbom>>,
-    git_cache_registry: GitCacheRegistry,
+    git_cache_registry: Arc<GitCacheRegistry>,
 ) -> anyhow::Result<Box<dyn FnOnce()>> {
     let git_remote_gosh_service = GitRemoteGoshService::new(sbom.clone());
     let gosh_get_service = GoshGetService::new(sbom, git_cache_registry);

@@ -61,6 +61,7 @@ pub async fn deploy_profile(
     println!("Start deployment of the profile:");
     println!("  username: {}", username.bright_blue());
     println!("  pubkey: {}", pubkey.bright_blue());
+    println!("Please wait...");
     let pubkey = format!("0x{}", pubkey);
     let address = get_profile_address(ever_client, username).await?;
     let system_contract = Contract::new(SYSTEM_CONTRACT_ADDESS, SYSTEM);
