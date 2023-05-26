@@ -8,7 +8,7 @@ pr: none
 strategy:
   matrix:
     linux:
-      imageName: ubuntu-22.04	
+      imageName: ubuntu-latest
       binName: gosh
       artifactNameAmd: linux-amd64
   maxParallel: 3
