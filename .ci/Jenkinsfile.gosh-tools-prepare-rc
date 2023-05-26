@@ -29,12 +29,12 @@ pipeline {
                 git branch: "${COMMIT}", url: 'https://github.com/gosh-sh/gosh-build-tools.git'
                 checkout scm
                 script {
-                    env.APP_VERSION = sh(script: " grep -m1 version gosh/Cargo.toml | awk '{print $NF}' | tr -d '\"' ", returnStdout: true).trim()
+                    env.APP_VERSION = sh(script: "grep -m1 version gosh/Cargo.toml | awk '{print \$NF}' | tr -d '\"'", returnStdout: true).trim()
                     currentBuild.displayName = "${BUILD_NUMBER}_${COMMIT}_${APP_VERSION}"
                 }
             }
         }
-        stage('Build: GOSH Tools') {
+        stage('Build: GOSH Tools') {gi
             agent {
                 node {
                     label 'jenkins-main'
