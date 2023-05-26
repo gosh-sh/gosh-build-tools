@@ -7,6 +7,7 @@ use std::collections::HashMap;
 use std::io::{BufReader, Read, Write};
 use std::path::Path;
 use std::{env, fmt};
+use colored::Colorize;
 
 #[derive(Clone, serde::Deserialize, serde::Serialize)]
 pub struct UserWalletConfig {
@@ -137,12 +138,16 @@ impl Config {
     }
 
     pub async fn check(&self) -> anyhow::Result<()> {
+        println!("Checking your GOSH config...");
         self.check_keys()?;
 
         let user_data = self.get_user_data();
         let ever_client = create_client(self)?;
         match check_profile_pubkey(&ever_client, &user_data.profile, &user_data.pubkey).await {
-            Ok(true) => Ok(()),
+            Ok(true) => {
+                println!("{}", "Config is valid".bright_green());
+                Ok(())
+            },
             Ok(false) => Err(anyhow::format_err!(
                 "pubkey is not correct for the specified profile"
             )),
