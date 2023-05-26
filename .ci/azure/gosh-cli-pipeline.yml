@@ -8,7 +8,7 @@ pr: none
 strategy:
   matrix:
     linux:
-      imageName: ubuntu-20.04
+      imageName: ubuntu-22.04	
       binName: gosh
       artifactNameAmd: linux-amd64
   maxParallel: 3
@@ -21,7 +21,7 @@ steps:
 # Pre-requirements
 # Linux
 - script: |
-    sudo apt install -y protobuf-compiler openssl_1.1.1f-1ubuntu2.17
+    sudo apt install -y protobuf-compiler 
   condition: eq( variables['Agent.OS'], 'Linux' )
   displayName: Install pre-requirements Linux
 
