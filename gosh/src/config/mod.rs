@@ -88,6 +88,11 @@ impl Config {
             env::var("GOSH_CONFIG_PATH").unwrap_or_else(|_| defaults::CONFIG_LOCATION.to_string());
         let config_path = shellexpand::tilde(&config_path).into_owned();
         let config_path = Path::new(&config_path);
+        if let Some(dir_path) = config_path.parent() {
+            if !dir_path.exists() {
+                std::fs::create_dir_all(dir_path)?;
+            }
+        }
         let mut file = std::fs::File::create(config_path)?;
         file.write_all(serde_json::to_string_pretty(&self)?.as_bytes())?;
         Ok(())
