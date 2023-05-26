@@ -1,6 +1,6 @@
 variables:
 - name: RUSTUP_TOOLCHAIN
-  value: 1.67.0
+  value: 1.68.0
 
 trigger: none
 pr: none
@@ -42,7 +42,7 @@ steps:
 # Linux
 - script: |
     set -ex
-    #cargo build --release --bin gosh
+    cargo build --release --bin gosh
     sudo apt update -y
     sudo apt install -y build-essential g++-x86-64-linux-gnu libc6-dev-amd64-cross g++-aarch64-linux-gnu libc6-dev-arm64-cross gcc-aarch64-linux-gnu
     rustup target add aarch64-unknown-linux-gnu 
