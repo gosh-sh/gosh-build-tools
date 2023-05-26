@@ -17,7 +17,7 @@ pub const DEFAULT_CONFIG_PATH: &str = "Gosh.yaml";
 pub const DEFAULT_SOCKET_ADDR: &str = "127.0.0.1:6054";
 
 #[derive(Debug, Clone)]
-pub struct CliSettings {
+pub struct BuildSettings {
     pub config_path: PathBuf,
     pub workdir: PathBuf,
     pub validate: bool,
@@ -70,7 +70,7 @@ pub fn command() -> clap::Command {
         )
 }
 
-pub fn settings(matches: &ArgMatches) -> anyhow::Result<CliSettings> {
+pub fn build_settings(matches: &ArgMatches) -> anyhow::Result<BuildSettings> {
     let git_context = match matches.try_get_one::<String>("url")? {
         Some(gosh_url) => Some(gosh_url.parse()?),
         None => None,
@@ -117,7 +117,7 @@ pub fn settings(matches: &ArgMatches) -> anyhow::Result<CliSettings> {
     let validate = matches.get_count("validate") > 0;
     let quiet = matches.get_count("quiet") > 0;
 
-    let cli_config = CliSettings {
+    let settings = BuildSettings {
         config_path: gosh_configfile,
         workdir,
         validate,
@@ -126,13 +126,13 @@ pub fn settings(matches: &ArgMatches) -> anyhow::Result<CliSettings> {
         sbom_proxy_socket,
     };
 
-    tracing::debug!("{:?}", cli_config);
+    tracing::debug!("{:?}", settings);
 
-    Ok(cli_config)
+    Ok(settings)
 }
 
-async fn gosh_config(
-    cli_settings: &CliSettings,
+pub async fn gosh_config(
+    cli_settings: &BuildSettings,
     git_cache_registry: &GitCacheRegistry,
 ) -> anyhow::Result<GoshConfig> {
     let Some(ref git_context) = &cli_settings.git_context else {
@@ -154,17 +154,14 @@ async fn gosh_config(
     tracing::debug!("Config workdir: {:?}", workdir);
 
     let raw_config = RawGoshConfig::try_from_reader(
-        zstd::decode_all(
-            git_cache_registry
-                .git_show(
-                    git_context.remote.as_str(),
-                    git_context.git_ref.as_str(),
-                    file_path.to_string_lossy(),
-                )
-                .await?
-                .as_slice(),
-        )?
-        .as_slice(),
+        git_cache_registry
+            .git_show_uncompressed(
+                git_context.remote.as_str(),
+                git_context.git_ref.as_str(),
+                file_path.to_string_lossy(),
+            )
+            .await?
+            .as_slice(),
     )?;
 
     let mut builder = GoshConfigBuilder::default();
@@ -194,34 +191,23 @@ async fn gosh_config(
     Ok(builder.build().expect("gosh config builder"))
 }
 
-pub async fn run(matches: &ArgMatches) -> anyhow::Result<()> {
-    let cli_settings = settings(matches)?;
+pub async fn build_image(
+    gosh_config: GoshConfig,
+    quiet: bool,
+    sbom_proxy_socket: SocketAddr,
+    sbom: Arc<Mutex<Sbom>>,
+    git_registry: GitCacheRegistry,
+) -> anyhow::Result<String> {
+    let stop_grpc_server = grpc_server::run(sbom_proxy_socket, sbom.clone(), git_registry).await?;
 
-    let git_cache_registry = GitCacheRegistry::default();
-
-    let gosh_config = gosh_config(&cli_settings, &git_cache_registry).await?;
-
-    let sbom = Arc::new(Mutex::new(Sbom::default()));
-
-    let stop_grpc_server = grpc_server::run(
-        cli_settings.sbom_proxy_socket,
-        sbom.clone(),
-        git_cache_registry,
-    )
-    .await?;
-
-    tracing::debug!("Dockerfile:\n{}", gosh_config.dockerfile);
-
-    let builder_exit_status = tokio::spawn(async move {
+    let build_result = tokio::spawn(async move {
         tracing::info!("Start build...");
 
         let gosh_builder = GoshBuilder {
             config: gosh_config,
         };
 
-        let inner_build_result = gosh_builder
-            .run(cli_settings.quiet, &cli_settings.sbom_proxy_socket)
-            .await;
+        let inner_build_result = gosh_builder.run(quiet, sbom_proxy_socket).await;
 
         tracing::info!("End build...");
         inner_build_result
@@ -232,18 +218,41 @@ pub async fn run(matches: &ArgMatches) -> anyhow::Result<()> {
     tracing::info!("Stoping build server...");
     stop_grpc_server();
 
-    if builder_exit_status.success() {
+    if build_result.status.success() {
         tracing::info!("Build successful");
     } else {
-        let exit_code = builder_exit_status.code().unwrap_or(1);
+        let exit_code = build_result.status.code().unwrap_or(1);
         anyhow::bail!("Docker build failed with exit code: {}", exit_code);
-    }
+    };
+
+    Ok(build_result.image_hash.unwrap_or("".to_owned()))
+}
+
+pub async fn run(matches: &ArgMatches) -> anyhow::Result<()> {
+    let build_settings = build_settings(matches)?;
+
+    let git_cache_registry = GitCacheRegistry::default();
+
+    let gosh_config = gosh_config(&build_settings, &git_cache_registry).await?;
+
+    tracing::debug!("Dockerfile:\n{}", gosh_config.dockerfile);
+
+    let sbom = Arc::new(Mutex::new(Sbom::default()));
+
+    let image_id = build_image(
+        gosh_config,
+        build_settings.quiet,
+        build_settings.sbom_proxy_socket,
+        sbom.clone(),
+        git_cache_registry,
+    )
+    .await?;
 
     // SBOM
 
     // TODO: fix SBOM_OUT env var confusion in case of --validate
 
-    if cli_settings.validate {
+    if build_settings.validate {
         tracing::info!("Validate SBOM...");
         let old_bom = load_bom(File::open(SBOM_DEFAULT_FILE_NAME)?)?;
         let bom = sbom.lock().await.get_bom()?;
@@ -260,6 +269,11 @@ pub async fn run(matches: &ArgMatches) -> anyhow::Result<()> {
         tracing::info!("Writing SBOM to {}", sbom_path);
         sbom.lock().await.save_to(sbom_path).await?;
         tracing::info!("SBOM's ready");
+    }
+
+    if build_settings.quiet {
+        // if EVERYTHING is ok than we just print image_id in a quite mode
+        println!("{}", image_id);
     }
 
     Ok(())

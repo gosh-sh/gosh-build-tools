@@ -5,11 +5,14 @@ use std::{
     net::SocketAddr,
     process::{ExitStatus, Stdio},
 };
-use tokio::{io::AsyncWriteExt, process::Command};
+use tokio::{
+    io::{AsyncReadExt, AsyncWriteExt},
+    process::Command,
+};
 
 #[async_trait::async_trait]
 pub trait ImageBuilder {
-    async fn run(&self, quiet: bool, proxy_socket: &SocketAddr) -> anyhow::Result<ExitStatus>;
+    async fn run(&self, quiet: bool, proxy_socket: SocketAddr) -> anyhow::Result<GoshBuildResult>;
 }
 
 #[derive(Debug, Clone)]
@@ -17,9 +20,15 @@ pub struct GoshBuilder {
     pub config: GoshConfig,
 }
 
+#[derive(Debug, Clone)]
+pub struct GoshBuildResult {
+    pub status: ExitStatus,
+    pub image_hash: Option<String>,
+}
+
 #[async_trait::async_trait]
 impl ImageBuilder for GoshBuilder {
-    async fn run(&self, quiet: bool, proxy_socket: &SocketAddr) -> anyhow::Result<ExitStatus> {
+    async fn run(&self, quiet: bool, proxy_socket: SocketAddr) -> anyhow::Result<GoshBuildResult> {
         let mut command = Command::new("docker");
         command.arg("buildx");
         command.arg("build");
@@ -58,7 +67,11 @@ impl ImageBuilder for GoshBuilder {
         tracing::debug!("{:?}", command);
 
         command.stdin(Stdio::piped());
-        command.stdout(Stdio::inherit());
+        if quiet {
+            command.stdout(Stdio::piped());
+        } else {
+            command.stdout(Stdio::inherit());
+        }
         command.stderr(Stdio::inherit());
 
         let mut process = command.spawn()?;
@@ -70,6 +83,20 @@ impl ImageBuilder for GoshBuilder {
         stdin.write_all(self.config.dockerfile.as_bytes()).await?;
         stdin.flush().await?;
 
-        Ok(process.wait().await?)
+        // IMPORTANT: we can do everything without tokio::spawn here becaue we
+        // don't really need any parallalization in case of quiet mode
+        let image_hash = if quiet {
+            // TODO: make it non-optional for non-quiet mode via --iidfile
+            let Some(ref mut stdout) = process.stdout.take() else {
+                anyhow::bail!("Can't take stdout");
+            };
+            let mut out = String::new();
+            stdout.read_to_string(&mut out).await?;
+            Some(out.trim().to_owned())
+        } else {
+            None
+        };
+        let status = process.wait().await?;
+        Ok(GoshBuildResult { status, image_hash })
     }
 }
