@@ -80,7 +80,7 @@ echo ""
 ALREADY_ADDED=$(cat "$HOME"/.bashrc | grep "export PATH=\$PATH:\$HOME/.gosh" | wc -l)
 if [ $ALREADY_ADDED -lt 1 ]; then
   echo "export PATH=\$PATH:\$HOME/.gosh" >>"$HOME"/.bashrc
-  export PATH=$PATH:\$HOME/.gosh
+  export PATH=$PATH:$HOME/.gosh
 fi
 
 # Remove the temporary directory
