@@ -6,6 +6,7 @@
 
 ```
 wget -O - https://raw.githubusercontent.com/gosh-sh/gosh-build-tools/dev/install.sh | bash -s
+export PATH=$PATH:$HOME/.gosh
 ```
 
 By default, script installs latest release to the default path `$HOME/.gosh/`, but you can customize it with env variables:
