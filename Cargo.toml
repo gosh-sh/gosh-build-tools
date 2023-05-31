@@ -8,16 +8,26 @@ members = [
     "gosh-builder-grpc-api",
     "gosh-get",
     "gosh-utils",
-    "telepresence-build-gosh",
 ]
 
+
 [profile.dev]
-# Must always use panic = "abort" to avoid needing to define the unstable eh_personality lang item.
-panic = "abort"
+opt-level = 1   # Make debug builds run faster
+panic = "abort" # This leads to better optimizations and smaller binaries (and is the default in Wasm anyways).
+
+# Optimize all dependencies even in debug builds (does not affect workspace packages):
+[profile.dev.package."*"]
+opt-level = "z"     # Optimize for size.
 
 [profile.release]
-opt-level = "z"     # Optimize for size.
 lto = true          # Enable Link Time Optimization
 codegen-units = 1   # Reduce number of codegen units to increase optimizations.
 panic = "abort"     # Abort on panic
 strip = true        # Automatically strip symbols from the binary.
+
+[workspace.package]
+
+[workspace.dependencies]
+anyhow = "1.0.71"
+tracing = "0.1.37"
+tracing-subscriber = { version ="0.3.17", features = ["env-filter"] }

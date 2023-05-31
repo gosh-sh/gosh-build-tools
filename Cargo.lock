@@ -1173,7 +1173,6 @@ dependencies = [
  "tokio",
  "ton_client",
  "tracing",
- "tracing-subscriber",
  "zstd 0.12.3+zstd.1.5.2",
 ]
 
@@ -2913,10 +2912,6 @@ dependencies = [
  "libc",
  "xattr",
 ]
-
-[[package]]
-name = "telepresence-build-gosh"
-version = "0.1.0"
 
 [[package]]
 name = "tempfile"
