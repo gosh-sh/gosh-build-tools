@@ -131,7 +131,9 @@ pub async fn run(matches: &ArgMatches) -> anyhow::Result<()> {
         sbom.clone(),
         git_cache_registry.clone(),
     )
-    .await?;
+    .await?
+    .trim()
+    .to_owned();
 
     if image_id.is_empty() {
         tracing::error!("Build image fail");
@@ -171,23 +173,28 @@ pub async fn run(matches: &ArgMatches) -> anyhow::Result<()> {
         .output()
         .await?;
 
-    let container_id = String::from_utf8(create_container_output.stdout)?;
+    let container_id = String::from_utf8(create_container_output.stdout)?
+        .trim()
+        .to_owned();
     tracing::debug!("Container ID: {}", container_id);
 
     // TODO: check install paths
     for path in install_paths {
         tracing::info!("Installing {}...", path);
         // TODO: ask for permissions
-        Command::new("sudo")
+        let mut command = Command::new("sudo");
+        command
             .arg("docker")
             .arg("container")
             .arg("cp")
             .arg(format!("{}:{}", container_id, path))
             .arg(path)
             .stdin(Stdio::inherit())
-            .stdout(Stdio::inherit())
-            .status()
-            .await?;
+            .stdout(Stdio::inherit());
+
+        tracing::debug!("{:?}", command);
+
+        command.status().await?;
     }
 
     Ok(())
