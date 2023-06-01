@@ -39,6 +39,8 @@ impl GoshConfig {
 
         if let Some(ref install) = raw_config.install {
             builder.install(install.clone());
+        } else {
+            builder.install(vec![]);
         };
 
         builder.build().expect("gosh config builder")
