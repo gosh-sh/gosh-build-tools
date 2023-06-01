@@ -33,6 +33,7 @@ fn test3() {
         dockerfile: Dockerfile::Content("FROM ubuntu".into()),
         tag: None,
         args: None,
+        install: None,
     };
 
     let yaml = serde_yaml::to_string(&obj).expect("object to yaml conversion");
@@ -41,6 +42,7 @@ fn test3() {
     assert_eq!(res.dockerfile, Dockerfile::Content("FROM ubuntu".into()));
     assert_eq!(res.args, None);
     assert_eq!(res.tag, None);
+    assert_eq!(res.install, None);
 }
 
 #[test]
@@ -51,6 +53,8 @@ fn test4() {
         args:
             arg1: value-2
         tag: test_tag
+        install:
+            - /test
     "#;
     let res = RawGoshConfig::try_from(yaml).expect("parse yaml");
     assert_eq!(
@@ -61,4 +65,5 @@ fn test4() {
     );
     assert_eq!(res.args.unwrap().get("arg1").unwrap(), "value-2");
     assert_eq!(res.tag.unwrap(), "test_tag");
+    assert_eq!(res.install.unwrap().first().unwrap(), "/test");
 }

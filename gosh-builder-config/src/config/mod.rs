@@ -10,6 +10,7 @@ pub struct GoshConfig {
     pub tag: Option<String>,
     #[builder(default)]
     pub args: HashMap<String, String>,
+    pub install: Vec<String>,
 }
 
 impl GoshConfig {
@@ -34,6 +35,10 @@ impl GoshConfig {
 
         if let Some(ref args) = raw_config.args {
             builder.args(args.clone());
+        };
+
+        if let Some(ref install) = raw_config.install {
+            builder.install(install.clone());
         };
 
         builder.build().expect("gosh config builder")

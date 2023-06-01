@@ -131,22 +131,16 @@ pub fn build_settings(matches: &ArgMatches) -> anyhow::Result<BuildSettings> {
     Ok(settings)
 }
 
-pub async fn gosh_config(
-    cli_settings: &BuildSettings,
+pub async fn gosh_config_url(
+    git_context: &GitContext,
+    config_path: &PathBuf,
     git_cache_registry: &GitCacheRegistry,
 ) -> anyhow::Result<GoshConfig> {
-    let Some(ref git_context) = &cli_settings.git_context else {
-        return Ok(GoshConfig::from_file(
-            &cli_settings.config_path,
-            &cli_settings.workdir,
-        ))
-    };
-
     // TODO: fix pessimistic cases
     // 1. abs paths (config shouldn't be absolute)
     // 2. config path can lead out of the git repo dir like '../../../../' many times
 
-    let file_path = PathBuf::from(git_context.sub_dir.as_str()).join(&cli_settings.config_path);
+    let file_path = PathBuf::from(git_context.sub_dir.as_str()).join(config_path);
     tracing::debug!("Config file_path: {:?}", file_path);
 
     let mut workdir = file_path.clone();
@@ -186,6 +180,10 @@ pub async fn gosh_config(
 
     if let Some(ref args) = raw_config.args {
         builder.args(args.clone());
+    };
+
+    if let Some(ref install) = raw_config.install {
+        builder.install(install.clone());
     };
 
     Ok(builder.build().expect("gosh config builder"))
@@ -233,7 +231,16 @@ pub async fn run(matches: &ArgMatches) -> anyhow::Result<()> {
 
     let git_cache_registry = Arc::new(GitCacheRegistry::default());
 
-    let gosh_config = gosh_config(&build_settings, &git_cache_registry).await?;
+    let gosh_config = if let Some(ref git_context) = build_settings.git_context {
+        gosh_config_url(
+            git_context,
+            &build_settings.config_path,
+            &git_cache_registry,
+        )
+        .await?
+    } else {
+        GoshConfig::from_file(&build_settings.config_path, &build_settings.workdir)
+    };
 
     tracing::debug!("Dockerfile:\n{}", gosh_config.dockerfile);
 
@@ -270,7 +277,6 @@ pub async fn run(matches: &ArgMatches) -> anyhow::Result<()> {
             anyhow::bail!("SBOM validation fail");
         } else {
             tracing::info!("SBOM validation success");
-            return Ok(());
         }
     } else if build_settings.validate {
         tracing::info!("Validate SBOM...");
@@ -281,7 +287,6 @@ pub async fn run(matches: &ArgMatches) -> anyhow::Result<()> {
             anyhow::bail!("SBOM validation fail");
         } else {
             tracing::info!("SBOM validation success");
-            return Ok(());
         }
     } else {
         let sbom_path = std::env::var("SBOM_OUT").unwrap_or(SBOM_DEFAULT_FILE_NAME.to_owned());
@@ -292,7 +297,7 @@ pub async fn run(matches: &ArgMatches) -> anyhow::Result<()> {
     }
 
     if build_settings.quiet {
-        // if EVERYTHING is ok than we just print image_id in a quite mode
+        // if EVERYTHING is OK than we just print image_id in a quite mode
         println!("{}", image_id);
     }
 
