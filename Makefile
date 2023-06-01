@@ -37,18 +37,38 @@ gosh-ubuntu: pb
 		` # --progress=plain ` \
 		--build-arg BRANCH=dev \
 		--tag gosh-ubuntu \
-		--file images/Dockerfile \
+		--file images/ubuntu/Dockerfile \
 		.
 
-# TODO: make multiplatform build
+.PHONY: gosh-rust
+gosh-rust: pb
+	docker buildx build \
+		` # --progress=plain ` \
+		--build-arg BRANCH=dev \
+		--tag gosh-ubuntu \
+		--file images/rust/Dockerfile \
+		.
+
 .PHONY: gosh-ubuntu-push
 gosh-ubuntu-push: pb
 	docker buildx build \
 		` # --progress=plain ` \
 		--no-cache \
 		--build-arg BRANCH=dev \
+		--tag awnion/gosh-ubuntu \
 		--tag awnion/gosh-ubuntu:22.04 \
-		--file images/Dockerfile \
+		--file images/ubuntu/Dockerfile \
+		--push \
+		.
+
+.PHONY: gosh-rust-push
+gosh-rust-push: pb
+	docker buildx build \
+		` # --progress=plain ` \
+		--no-cache \
+		--build-arg BRANCH=dev \
+		--tag awnion/gosh-rust \
+		--file images/rust/Dockerfile \
 		--push \
 		.
 
@@ -77,4 +97,7 @@ init:
 .PHONY: install
 install:
 	cd gosh && cargo install -f --path .
-	cd telepresence-build-gosh && cargo install -f --path .
+
+.PHONY: dev-install ## fast builds for debug
+dev-install:
+	cd gosh && cargo install --profile dev -f --path .
