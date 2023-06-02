@@ -78,7 +78,7 @@ gosh-ubuntu-release: pb
 		--no-cache \
 		--build-arg BRANCH=dev \
 		--tag teamgosh/gosh-ubuntu:22.04 \
-		--file images/Dockerfile \
+		--file images/ubuntu/Dockerfile \
 		--push \
 		.
 
