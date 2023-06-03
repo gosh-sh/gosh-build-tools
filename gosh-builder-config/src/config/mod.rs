@@ -10,6 +10,7 @@ pub struct GoshConfig {
     pub tag: Option<String>,
     #[builder(default)]
     pub args: HashMap<String, String>,
+    #[builder(default)]
     pub install: Vec<String>,
 }
 
@@ -39,8 +40,6 @@ impl GoshConfig {
 
         if let Some(ref install) = raw_config.install {
             builder.install(install.clone());
-        } else {
-            builder.install(vec![]);
         };
 
         builder.build().expect("gosh config builder")

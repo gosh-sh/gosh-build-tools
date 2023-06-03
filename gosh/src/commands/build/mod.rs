@@ -184,8 +184,6 @@ pub async fn gosh_config_url(
 
     if let Some(ref install) = raw_config.install {
         builder.install(install.clone());
-    } else {
-        builder.install(vec![]);
     };
 
     Ok(builder.build().expect("gosh config builder"))
