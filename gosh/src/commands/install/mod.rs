@@ -1,10 +1,8 @@
-use crate::commands::build::{build_image, gosh_config_url};
+use crate::commands::build::build_image;
 use clap::ArgMatches;
-use git_registry::registry::GitCacheRegistry;
-use gosh_builder::{
-    docker_builder::git_context::GitContext,
-    sbom::{load_bom, Sbom, SBOM_DEFAULT_FILE_NAME},
-};
+use git_registry::{git_context::GitContext, registry::GitCacheRegistry};
+use gosh_builder::sbom::{load_bom, Sbom, SBOM_DEFAULT_FILE_NAME};
+use gosh_builder_config::GoshConfig;
 use std::{net::SocketAddr, path::PathBuf, process::Stdio, sync::Arc};
 use tokio::{process::Command, sync::Mutex};
 
@@ -108,7 +106,7 @@ pub async fn run(matches: &ArgMatches) -> anyhow::Result<()> {
         anyhow::bail!("url is required")
     };
 
-    let mut gosh_config = gosh_config_url(
+    let mut gosh_config = GoshConfig::from_git_context(
         git_context,
         &build_settings.config_path,
         &git_cache_registry,

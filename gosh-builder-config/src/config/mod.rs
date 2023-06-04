@@ -1,3 +1,5 @@
+use git_registry::{git_context::GitContext, registry::GitCacheRegistry};
+
 use crate::raw_config::{Dockerfile, RawGoshConfig};
 use std::{
     collections::HashMap,
@@ -15,6 +17,64 @@ pub struct GoshConfig {
 }
 
 impl GoshConfig {
+    pub async fn from_git_context(
+        git_context: &GitContext,
+        config_path: &PathBuf,
+        git_cache_registry: &GitCacheRegistry,
+    ) -> anyhow::Result<GoshConfig> {
+        // TODO: fix pessimistic cases
+        // 1. abs paths (config shouldn't be absolute)
+        // 2. config path can lead out of the git repo dir like '../../../../' many times
+
+        let file_path = PathBuf::from(git_context.sub_dir.as_str()).join(config_path);
+        tracing::debug!("Config file_path: {:?}", file_path);
+
+        let mut workdir = file_path.clone();
+        workdir.pop();
+        tracing::debug!("Config workdir: {:?}", workdir);
+
+        let raw_config = RawGoshConfig::try_from_reader(
+            git_cache_registry
+                .git_show_uncompressed(
+                    git_context.remote.as_str(),
+                    git_context.git_ref.as_str(),
+                    file_path.to_string_lossy(),
+                )
+                .await?
+                .as_slice(),
+        )?;
+
+        let mut builder = GoshConfigBuilder::default();
+
+        builder.dockerfile(match raw_config.dockerfile {
+            Dockerfile::Content(content) => content,
+            Dockerfile::Path { ref path } => {
+                let dockerfile_path = workdir.join(path);
+                tracing::debug!("Dockerfile path: {:?}", dockerfile_path);
+                String::from_utf8(
+                    git_cache_registry
+                        .git_show_uncompressed(
+                            git_context.remote.as_str(),
+                            git_context.git_ref.as_str(),
+                            dockerfile_path.to_string_lossy(),
+                        )
+                        .await?,
+                )?
+            }
+        });
+        builder.tag(raw_config.tag);
+
+        if let Some(ref args) = raw_config.args {
+            builder.args(args.clone());
+        };
+
+        if let Some(ref install) = raw_config.install {
+            builder.install(install.clone());
+        };
+
+        Ok(builder.build().expect("gosh config builder"))
+    }
+
     pub fn from_file(path: impl AsRef<Path>, workdir: impl AsRef<Path>) -> Self {
         let raw_config = RawGoshConfig::try_from_file(path).expect("read gosh file yaml");
 
