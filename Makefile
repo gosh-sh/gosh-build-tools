@@ -85,6 +85,15 @@ gosh-rust-release: pb
 		--push \
 		.
 
+gosh-go-release: pb
+	docker buildx build \
+		--no-cache \
+		--tag teamgosh/gosh-go:1.20.4-bullseye \
+		--tag teamgosh/gosh-go:latest \
+		--file images/go/Dockerfile \
+		--push \
+		.
+
 .PHONY: pb
 pb:
 	cd gosh-builder-grpc-api && cargo build
