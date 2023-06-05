@@ -35,10 +35,10 @@ async fn generate_config() -> anyhow::Result<Config> {
         let profile_exists = does_profile_exist(&default_client, &username).await?;
 
         let input: String = Input::new()
-            .with_prompt("Do you have a seed phrase for GOSH? (Y/n)")
+            .with_prompt("Do you have a seed phrase for GOSH? (y/N)")
             .with_initial_text("n")
             .interact_text()?;
-        let keys: KeyPair = if input == "Y" {
+        let keys: KeyPair = if input.to_lowercase() == "y" {
             let user_seed: String = Input::new()
                 .with_prompt("Please enter your seed phrase")
                 .interact_text()?;
@@ -74,9 +74,9 @@ async fn generate_config() -> anyhow::Result<Config> {
             println!("\nSeed: {}\n", seed.bright_cyan());
             println!("{}", "Warning: write down and save your seed phrase in a safe location. Remember that if you lose it you will also lose access to your profile.\n".bright_red());
             let input: String = Input::new()
-                .with_prompt("Have you read and understand the warning? (Y/n)")
+                .with_prompt("Have you read and understand the warning? (y/n)")
                 .interact_text()?;
-            if input != *"Y" {
+            if input.to_lowercase() != *"y" {
                 println!("Sorry, but in this case we can't continue the onboarding.");
                 exit(0);
             }
@@ -109,9 +109,9 @@ pub async fn init_command() -> anyhow::Result<()> {
                 println!("Your local GOSH config is invalid: {e}.");
                 println!("{}", "\nWarning: if you complete the registration process locally, it will delete the current config file\n".bright_red());
                 let choice: String = Input::new()
-                    .with_prompt("Do you want to go through the onboarding process locally? (Y/n)")
+                    .with_prompt("Do you want to go through the onboarding process locally? (y/n)")
                     .interact_text()?;
-                if choice != *"Y" {
+                if choice.to_lowercase() != *"y" {
                     println!("Hope to see you soon.");
                     exit(0);
                 }
@@ -132,10 +132,10 @@ Otherwise you can onboard locally.\n",
                 "https://app.gosh.sh/onboarding".bright_green().underline()
             );
             let choice: String = Input::new()
-                .with_prompt("Do you want to go through the process locally? (Y/n)")
+                .with_prompt("Do you want to go through the process locally? (y/N)")
                 .with_initial_text("n")
                 .interact_text()?;
-            if choice != *"Y" {
+            if choice.to_lowercase() != *"y" {
                 println!("Hope to see you soon.");
                 exit(0);
             }
