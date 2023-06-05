@@ -84,7 +84,6 @@ pub fn build_settings(matches: &ArgMatches) -> anyhow::Result<BuildSettings> {
         // local
 
         if !gosh_configfile.exists() {
-            tracing::error!("Gosh config path doesn't exist");
             anyhow::bail!("Gosh config path doesn't exist");
         }
 
@@ -178,7 +177,7 @@ pub async fn run(matches: &ArgMatches) -> anyhow::Result<()> {
         )
         .await?
     } else {
-        GoshConfig::from_file(&build_settings.config_path, &build_settings.workdir)
+        GoshConfig::from_file(&build_settings.config_path, &build_settings.workdir)?
     };
 
     tracing::debug!("Dockerfile:\n{}", gosh_config.dockerfile);
@@ -212,7 +211,6 @@ pub async fn run(matches: &ArgMatches) -> anyhow::Result<()> {
 
         let bom = sbom.lock().await.get_bom()?;
         if bom != old_bom {
-            tracing::error!("SBOM validation fail");
             anyhow::bail!("SBOM validation fail");
         } else {
             tracing::info!("SBOM validation success");
@@ -222,7 +220,6 @@ pub async fn run(matches: &ArgMatches) -> anyhow::Result<()> {
         let old_bom = load_bom(File::open(SBOM_DEFAULT_FILE_NAME)?)?;
         let bom = sbom.lock().await.get_bom()?;
         if bom != old_bom {
-            tracing::error!("SBOM validation fail");
             anyhow::bail!("SBOM validation fail");
         } else {
             tracing::info!("SBOM validation success");

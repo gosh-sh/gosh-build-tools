@@ -21,7 +21,7 @@ impl GoshConfig {
         git_context: &GitContext,
         config_path: &PathBuf,
         git_cache_registry: &GitCacheRegistry,
-    ) -> anyhow::Result<GoshConfig> {
+    ) -> anyhow::Result<Self> {
         // TODO: fix pessimistic cases
         // 1. abs paths (config shouldn't be absolute)
         // 2. config path can lead out of the git repo dir like '../../../../' many times
@@ -75,7 +75,7 @@ impl GoshConfig {
         Ok(builder.build().expect("gosh config builder"))
     }
 
-    pub fn from_file(path: impl AsRef<Path>, workdir: impl AsRef<Path>) -> Self {
+    pub fn from_file(path: impl AsRef<Path>, workdir: impl AsRef<Path>) -> anyhow::Result<Self> {
         let raw_config = RawGoshConfig::try_from_file(path).expect("read gosh file yaml");
 
         let mut builder = GoshConfigBuilder::default();
@@ -86,8 +86,7 @@ impl GoshConfig {
                 let dockerfile_path =
                     clean_dockerfile_path(path, workdir.as_ref()).expect("clean dockerfile path");
                 if !dockerfile_path.exists() {
-                    tracing::error!("Dockerfile not found: {}", dockerfile_path.display());
-                    panic!("Dockerfile not found: {}", dockerfile_path.display());
+                    anyhow::bail!("Dockerfile not found: {}", dockerfile_path.display());
                 }
                 std::fs::read_to_string(dockerfile_path).expect("read Dockerfile")
             }
@@ -102,7 +101,7 @@ impl GoshConfig {
             builder.install(install.clone());
         };
 
-        builder.build().expect("gosh config builder")
+        Ok(builder.build()?)
     }
 }
 

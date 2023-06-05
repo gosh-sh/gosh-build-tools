@@ -57,7 +57,6 @@ pub fn install_settings(matches: &ArgMatches) -> anyhow::Result<InstallSettings>
         // local
 
         if !gosh_configfile.exists() {
-            tracing::error!("Gosh config path doesn't exist");
             anyhow::bail!("Gosh config path doesn't exist");
         }
 
@@ -101,7 +100,6 @@ pub async fn run(matches: &ArgMatches) -> anyhow::Result<()> {
 
     let git_cache_registry = Arc::new(GitCacheRegistry::default());
 
-    // let some
     let Some(ref git_context) = build_settings.git_context else {
         anyhow::bail!("url is required")
     };
@@ -113,7 +111,6 @@ pub async fn run(matches: &ArgMatches) -> anyhow::Result<()> {
     )
     .await?;
 
-    // let mut gosh_config = gosh_config(&build_settings, &git_cache_registry).await?;
     // TODO: build doesn't need install paths, probably we should make
     // another config for build
     let install_paths = std::mem::take(&mut gosh_config.install);
@@ -134,7 +131,6 @@ pub async fn run(matches: &ArgMatches) -> anyhow::Result<()> {
     .to_owned();
 
     if image_id.is_empty() {
-        tracing::error!("Build image fail");
         anyhow::bail!("Build image fail");
     }
 
@@ -154,7 +150,6 @@ pub async fn run(matches: &ArgMatches) -> anyhow::Result<()> {
 
     let bom = sbom.lock().await.get_bom()?;
     if bom != old_bom {
-        tracing::error!("SBOM validation fail");
         anyhow::bail!("SBOM validation fail");
     } else {
         tracing::info!("SBOM validation success");

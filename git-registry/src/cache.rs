@@ -43,12 +43,11 @@ impl GitCacheRepo {
             let status = git_pull_process.wait().await?;
 
             if !status.success() {
-                tracing::error!(
+                anyhow::bail!(
                     "git pull process failed: url={} dir={:?}",
                     &self.url,
                     &self.git_dir
                 );
-                anyhow::bail!("git pull process failed")
             }
         } else {
             // git clone
@@ -75,12 +74,11 @@ impl GitCacheRepo {
             let status = git_clone_process.wait().await?;
 
             if !status.success() {
-                tracing::error!(
+                anyhow::bail!(
                     "git clone process failed: url={} dir={:?}",
                     &self.url,
                     &self.git_dir
                 );
-                anyhow::bail!("git clone process failed")
             }
         }
         Ok(())
@@ -101,8 +99,7 @@ impl GitCacheRepo {
         }
 
         let Some(stdout) = git_archive_process.stdout.take() else {
-            tracing::error!("unable to take STDOUT: git_dir={:?}", &self.git_dir);
-            anyhow::bail!("internal error");
+            anyhow::bail!("unable to take STDOUT: git_dir={:?}", &self.git_dir);
         };
 
         let zstd_body = stdout.zstd_read_to_end().await?;
