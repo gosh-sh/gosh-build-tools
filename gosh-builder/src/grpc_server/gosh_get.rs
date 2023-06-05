@@ -31,46 +31,49 @@ impl GoshGet for GoshGetService {
 
         tracing::debug!("{:?}", request);
 
-        match self
+        let commit_hash = self
             .git_cache_registry
-            .git_archive(&request.gosh_url, &request.commit)
+            .normalized_commit(&request.gosh_url, &request.commit)
             .await
-        {
-            Ok(body) => {
-                // TODO: (maybe?) convert request.commit to canonical hash
+            .map_err(|error| tonic::Status::internal(format!("{:?}", error)))?;
 
-                self.sbom.lock().await.append(
-                    GoshClassification::Commit,
-                    format!("{}:{}", &request.gosh_url, &request.commit),
-                );
-                return Ok(tonic::Response::new(CommitResponse { body }));
-            }
-            Err(error) => return Err(tonic::Status::internal(format!("{:?}", error))),
-        }
+        let body = self
+            .git_cache_registry
+            .git_archive(&request.gosh_url, &commit_hash)
+            .await
+            .map_err(|error| tonic::Status::internal(format!("{:?}", error)))?;
+
+        self.sbom.lock().await.append(
+            GoshClassification::Commit,
+            format!("{}:{}", &request.gosh_url, &commit_hash),
+        );
+
+        return Ok(tonic::Response::new(CommitResponse { body }));
     }
+
     async fn file(
         &self,
         grpc_request: tonic::Request<FileRequest>,
     ) -> std::result::Result<tonic::Response<FileResponse>, tonic::Status> {
         let request = grpc_request.into_inner();
 
-        match self
+        let commit_hash = self
             .git_cache_registry
-            .git_show(&request.gosh_url, &request.commit, &request.path)
+            .normalized_commit(&request.gosh_url, &request.commit)
             .await
-        {
-            Ok(body) => {
-                // TODO: (maybe?) convert request.commit to canonical hash
-                self.sbom.lock().await.append(
-                    GoshClassification::File,
-                    format!(
-                        "{}:{}:{}",
-                        &request.gosh_url, &request.commit, &request.path
-                    ),
-                );
-                return Ok(tonic::Response::new(FileResponse { body }));
-            }
-            Err(error) => return Err(tonic::Status::internal(format!("{:?}", error))),
-        }
+            .map_err(|error| tonic::Status::internal(format!("{:?}", error)))?;
+
+        let body = self
+            .git_cache_registry
+            .git_show(&request.gosh_url, &commit_hash, &request.path)
+            .await
+            .map_err(|error| tonic::Status::internal(format!("{:?}", error)))?;
+
+        self.sbom.lock().await.append(
+            GoshClassification::File,
+            format!("{}:{}:{}", &request.gosh_url, &commit_hash, &request.path),
+        );
+
+        Ok(tonic::Response::new(FileResponse { body }))
     }
 }

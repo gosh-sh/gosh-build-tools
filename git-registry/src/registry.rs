@@ -90,4 +90,17 @@ impl GitCacheRegistry {
             Ok(git_repo.clone())
         }
     }
+
+    pub async fn normalized_commit(
+        &self,
+        url: impl AsRef<str>,
+        raw_commit: impl AsRef<str>,
+    ) -> anyhow::Result<String> {
+        self.get_or_create_repository(url)
+            .await?
+            .lock()
+            .await
+            .normalized_commit(raw_commit)
+            .await
+    }
 }

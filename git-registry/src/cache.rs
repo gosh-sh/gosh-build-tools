@@ -185,24 +185,36 @@ impl GitCacheRepo {
             anyhow::bail!("git-show process failed (usually it's because file doesn't exist)")
         }
     }
-    // async fn try_normalize_ref(&self, commit: impl AsRef<str>) -> anyhow::Result<String> {
-    //     let mut git_show_process = tokio::process::Command::new("git")
-    //         .arg("show")
-    //         .arg(format!("{}:{}", commit.as_ref(), file_path.as_ref()))
-    //         .current_dir(&self.git_dir)
-    //         .stdout(Stdio::piped())
-    //         .stderr(Stdio::piped())
-    //         .spawn()?;
 
-    //     if let Some(io) = git_show_process.stderr.take() {
-    //         io.map_per_line(|line| tracing::debug!("{}", line))
-    //     }
+    pub async fn normalized_commit(&self, commit: impl AsRef<str>) -> anyhow::Result<String> {
+        let mut git_process = tokio::process::Command::new("git")
+            .arg("rev-list")
+            .arg("--no-walk")
+            .arg(commit.as_ref())
+            .current_dir(&self.git_dir)
+            .stdout(Stdio::piped())
+            .stderr(Stdio::piped())
+            .spawn()?;
 
-    //     let Some(stdout) = git_show_process.stdout.take() else {
-    //         tracing::error!("unable to take STDOUT: url={}", &self.url);
-    //         anyhow::bail!("internal error");
-    //     };
-    // }
+        if let Some(io) = git_process.stderr.take() {
+            io.map_per_line(|line| tracing::debug!("{}", line))
+        }
+
+        let Some(mut stdout) = git_process.stdout.take() else {
+            tracing::error!("unable to take STDOUT: url={}", &self.url);
+            anyhow::bail!("internal error");
+        };
+
+        let mut body = Vec::new();
+        stdout.read_to_end(&mut body).await?;
+        tracing::trace!("body: {:?}", &body);
+
+        if git_process.wait().await?.success() {
+            Ok(String::from_utf8(body)?.trim().to_string())
+        } else {
+            anyhow::bail!("can't normalize `{}` to commit hash", commit.as_ref())
+        }
+    }
 }
 
 fn hex_hash<H>(hashable: &H) -> String
