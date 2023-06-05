@@ -34,7 +34,6 @@ trace-url: gosh-ubuntu
 .PHONY: gosh-ubuntu
 gosh-ubuntu: pb
 	docker buildx build \
-		` # --progress=plain ` \
 		--build-arg BRANCH=dev \
 		--tag gosh-ubuntu \
 		--file images/ubuntu/Dockerfile \
@@ -43,16 +42,13 @@ gosh-ubuntu: pb
 .PHONY: gosh-rust
 gosh-rust: pb
 	docker buildx build \
-		` # --progress=plain ` \
-		--build-arg BRANCH=dev \
-		--tag gosh-ubuntu \
+		--tag gosh-rust \
 		--file images/rust/Dockerfile \
 		.
 
 .PHONY: gosh-ubuntu-push
 gosh-ubuntu-push: pb
 	docker buildx build \
-		` # --progress=plain ` \
 		--no-cache \
 		--build-arg BRANCH=dev \
 		--tag awnion/gosh-ubuntu \
@@ -64,9 +60,7 @@ gosh-ubuntu-push: pb
 .PHONY: gosh-rust-push
 gosh-rust-push: pb
 	docker buildx build \
-		` # --progress=plain ` \
 		--no-cache \
-		--build-arg BRANCH=dev \
 		--tag awnion/gosh-rust \
 		--file images/rust/Dockerfile \
 		--push \
@@ -74,11 +68,20 @@ gosh-rust-push: pb
 
 gosh-ubuntu-release: pb
 	docker buildx build \
-		` # --progress=plain ` \
 		--no-cache \
 		--build-arg BRANCH=dev \
 		--tag teamgosh/gosh-ubuntu:22.04 \
+		--tag teamgosh/gosh-ubuntu:latest \
 		--file images/ubuntu/Dockerfile \
+		--push \
+		.
+
+gosh-rust-release: pb
+	docker buildx build \
+		--no-cache \
+		--tag teamgosh/gosh-rust:1.70-bookworm \
+		--tag teamgosh/gosh-rust:latest \
+		--file images/rust/Dockerfile \
 		--push \
 		.
 
