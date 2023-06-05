@@ -162,7 +162,7 @@ def prereleaseToolsDeliveryImage() {
             withCredentials([[$class: 'UsernamePasswordMultiBinding', credentialsId: 'teamgosh-dockerhub', usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD']]) {
                 sh 'docker login -u $USERNAME -p $PASSWORD'
             }
-            sh """PATH=$HOME/.cargo/bin:$PATH && make gosh-ubuntu-release && make gosh-rust-release && make gosh-go-release"""
+            sh """PATH=$HOME/.cargo/bin:$PATH && make gosh-ubuntu-release && make gosh-rust-release && make gosh-golang-release"""
         }
     }
 }
