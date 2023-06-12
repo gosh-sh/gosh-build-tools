@@ -1,5 +1,4 @@
 [workspace]
-
 members = [
     "git-registry",
     "gosh",
@@ -17,17 +16,17 @@ panic = "abort" # This leads to better optimizations and smaller binaries (and i
 
 # Optimize all dependencies even in debug builds (does not affect workspace packages):
 [profile.dev.package."*"]
-opt-level = "z"     # Optimize for size.
+opt-level = "z" # Optimize for size.
 
 [profile.release]
-lto = true          # Enable Link Time Optimization
-codegen-units = 1   # Reduce number of codegen units to increase optimizations.
-panic = "abort"     # Abort on panic
-strip = true        # Automatically strip symbols from the binary.
+codegen-units = 1 # Reduce number of codegen units to increase optimizations.
+lto = true        # Enable Link Time Optimization
+panic = "abort"   # Abort on panic
+strip = true      # Automatically strip symbols from the binary.
 
 [workspace.package]
 
 [workspace.dependencies]
 anyhow = "1.0.71"
 tracing = "0.1.37"
-tracing-subscriber = { version ="0.3.17", features = ["env-filter"] }
+tracing-subscriber = { version = "0.3.17", features = ["env-filter"] }

@@ -7,7 +7,16 @@ edition = "2021"
 
 [dependencies]
 anyhow = "1.0"
+async-compression = { version = "0.3.15", features = ["tokio", "zstd"] }
+async-trait = "0.1.68"
+bytes = "1.4.0"
 clap = { version = "4.1.8", features = ["derive"] }
+cyclonedx-bom = "0.4.0"
+dirs = "5.0"
+git-registry = { path = "../git-registry/" }
+gosh-builder-config = { path = "../gosh-builder-config/" }
+gosh-builder-grpc-api = { path = "../gosh-builder-grpc-api/" }
+gosh-utils = { path = "../gosh-utils/" }
 hyper = { version = "0.14.25", features = ["full"] }
 hyper-proxy = "0.9.1"
 hyper-rustls = "0.24"
@@ -16,19 +25,10 @@ openssl = { version = "=0.10.52", features = ["vendored"] }
 rustls = "0.21"
 serde = { version = "1.0.160", features = ["derive"] }
 serde_yaml = "0.9.21"
-tokio = { version = "1.27.0", features = ["full"] }
-git-registry = { path = "../git-registry/" }
-gosh-builder-grpc-api = { path = "../gosh-builder-grpc-api/" }
-gosh-builder-config = { path = "../gosh-builder-config/" }
-gosh-utils = { path = "../gosh-utils/" }
-tonic = "0.9"
-bytes = "1.4.0"
 tar = "0.4.38"
-zstd = "0.12.3"
-async-trait = "0.1.68"
-uuid = { version = "1.3.1", features = ["v4"] }
+tokio = { version = "1.27.0", features = ["full"] }
+tonic = "0.9"
 tracing = "0.1.37"
 tracing-subscriber = { version = "0.3.16", features = ["env-filter"] }
-async-compression = { version = "0.3.15", features = ["zstd", "tokio"] }
-cyclonedx-bom = "0.4.0"
-dirs = "5.0"
+uuid = { version = "1.3.1", features = ["v4"] }
+zstd = "0.12.3"

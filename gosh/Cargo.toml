@@ -11,15 +11,15 @@ cached = "0.43.0"
 clap = "4.3.0"
 colored = "2.0.0"
 dialoguer = "0.10.4"
-git-registry = {path = "../git-registry/"}
-gosh-builder = {path = "../gosh-builder"}
-gosh-builder-config = {path = "../gosh-builder-config"}
-gosh-utils = {path = "../gosh-utils"}
+git-registry = { path = "../git-registry/" }
+gosh-builder = { path = "../gosh-builder" }
+gosh-builder-config = { path = "../gosh-builder-config" }
+gosh-utils = { path = "../gosh-utils" }
 hex = "0.4.3"
-openssl = {version = "0.10.52", features = ["vendored"]}
-serde = {version = "1.0.163", features = ['derive']}
+openssl = { version = "0.10.52", features = ["vendored"] }
+serde = { version = "1.0.163", features = ['derive'] }
 serde_json = "1.0.96"
 shellexpand = "3.1.0"
-tokio = {version = "1.28.1", features = ['process']}
-ton_client = {git = 'https://github.com/tonlabs/ever-sdk.git', tag = '1.42.1'}
+tokio = { version = "1.28.1", features = ['process'] }
+ton_client = { git = 'https://github.com/tonlabs/ever-sdk.git', tag = '1.42.1' }
 zstd = "0.12.3"
