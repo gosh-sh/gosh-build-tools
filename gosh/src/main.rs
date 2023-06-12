@@ -19,7 +19,10 @@ async fn main() -> anyhow::Result<()> {
 async fn run() -> anyhow::Result<()> {
     let version = option_env!("GOSH_VERSION").unwrap_or(env!("CARGO_PKG_VERSION"));
     let matches = clap::Command::new("gosh")
-        .about("GOSH cli tool https://gosh.sh")
+        .about("\
+GOSH cli tool https://gosh.sh
+
+In case of any issues, or to receive assistance when working with GOSH cli please contact help@gosh.sh")
         .version(version)
         .subcommand(
             clap::Command::new("init")
