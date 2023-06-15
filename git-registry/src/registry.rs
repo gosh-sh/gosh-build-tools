@@ -1,5 +1,5 @@
 use crate::cache::GitCacheRepo;
-use std::{collections::HashMap, sync::Arc};
+use std::{collections::HashMap, path::PathBuf, sync::Arc};
 use tokio::sync::Mutex;
 
 #[derive(Debug, Default)]
@@ -10,6 +10,26 @@ pub struct GitCacheRegistry {
 // TODO: make archivation optional
 
 impl GitCacheRegistry {
+    pub async fn update_server_info(&self, url: impl AsRef<str>) -> anyhow::Result<()> {
+        tracing::debug!("update_server_info: {}", url.as_ref());
+        let repo = self.get_or_create_repository(url).await?;
+
+        let repo_lock = repo.lock().await;
+        repo_lock.update_server_info().await
+    }
+
+    pub async fn dumb(
+        &self,
+        url: impl AsRef<str>,
+        src: impl AsRef<str>,
+    ) -> anyhow::Result<PathBuf> {
+        tracing::debug!("dumb: {} {}", url.as_ref(), src.as_ref());
+        let repo = self.get_or_create_repository(url).await?;
+
+        let repo_lock = repo.lock().await;
+        repo_lock.dumb(src).await
+    }
+
     pub async fn git_archive(
         &self,
         url: impl AsRef<str>,

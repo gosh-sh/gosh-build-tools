@@ -84,6 +84,18 @@ impl GitCacheRepo {
         Ok(())
     }
 
+    pub async fn update_server_info(&self) -> anyhow::Result<()> {
+        Command::new("git")
+            .arg("update-server-info")
+            .output()
+            .await?;
+        Ok(())
+    }
+
+    pub async fn dumb(&self, src: impl AsRef<str>) -> anyhow::Result<PathBuf> {
+        Ok(self.git_dir.join(".git").join(src.as_ref()))
+    }
+
     pub async fn git_archive(&self, commit: impl AsRef<str>) -> anyhow::Result<Vec<u8>> {
         let mut git_archive_process = Command::new("git")
             .arg("archive")

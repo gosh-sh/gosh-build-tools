@@ -3,11 +3,11 @@ mod defaults;
 use crate::blockchain::ever_client::create_client;
 use crate::crypto::generate_keypair_from_secret;
 use crate::profile::check_profile_pubkey;
+use colored::Colorize;
 use std::collections::HashMap;
 use std::io::{BufReader, Read, Write};
 use std::path::Path;
 use std::{env, fmt};
-use colored::Colorize;
 
 #[derive(Clone, serde::Deserialize, serde::Serialize)]
 pub struct UserWalletConfig {
@@ -147,7 +147,7 @@ impl Config {
             Ok(true) => {
                 println!("{}", "Config is valid".bright_green());
                 Ok(())
-            },
+            }
             Ok(false) => Err(anyhow::format_err!(
                 "pubkey is not correct for the specified profile"
             )),

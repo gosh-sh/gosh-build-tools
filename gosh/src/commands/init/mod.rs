@@ -51,10 +51,14 @@ async fn generate_config() -> anyhow::Result<Config> {
                     Ok(true) => {
                         println!("{}", "Phrase is valid".bright_green());
                         keys
-                    },
+                    }
                     Ok(false) => {
                         println!("{}", "\nUsername already exists and your seed phrase is not correct for this profile.\n".red());
-                        println!("{}", "Please create a unique username or find your old seed phrase.\n".bright_yellow());
+                        println!(
+                            "{}",
+                            "Please create a unique username or find your old seed phrase.\n"
+                                .bright_yellow()
+                        );
                         continue;
                     }
                 }
@@ -194,7 +198,10 @@ fn create_gosh_yaml() -> anyhow::Result<()> {
             "\nGosh.yaml file was successfully generated.\n".bright_green()
         );
     } else {
-        println!("{}", "\nYou already have the Gosh.yaml file in the current directory.".bright_yellow());
+        println!(
+            "{}",
+            "\nYou already have the Gosh.yaml file in the current directory.".bright_yellow()
+        );
     }
     Ok(())
 }

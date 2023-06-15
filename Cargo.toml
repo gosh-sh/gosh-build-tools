@@ -1,6 +1,7 @@
 [workspace]
 members = [
     "git-registry",
+    "git-server",
     "gosh",
     "gosh-builder",
     "gosh-builder-config",
