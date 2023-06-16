@@ -57,6 +57,25 @@ gosh-ubuntu-push: pb
 		--push \
 		.
 
+.PHONY: gosh-git-server
+gosh-git-server:
+	docker buildx build \
+		--tag gosh-git-server \
+		--file images/git-server/Dockerfile \
+		.
+
+.PHONY: gosh-git-server
+gosh-git-server-debug: gosh-git-server
+	docker run --rm -ti -p 8080:8080 -e GOSH_LOG=debug gosh-git-server
+
+.PHONY: gosh-git-server-push
+gosh-git-server-push:
+	docker buildx build \
+		--tag awnion/gosh-git-server \
+		--file images/git-server/Dockerfile \
+		--push \
+		.
+
 .PHONY: gosh-rust-push
 gosh-rust-push: pb
 	docker buildx build \
@@ -66,6 +85,7 @@ gosh-rust-push: pb
 		--push \
 		.
 
+.PHONY: gosh-ubuntu-release
 gosh-ubuntu-release: pb
 	docker buildx build \
 		--no-cache \
@@ -76,6 +96,7 @@ gosh-ubuntu-release: pb
 		--push \
 		.
 
+.PHONY: gosh-rust-release
 gosh-rust-release: pb
 	docker buildx build \
 		--no-cache \
@@ -85,6 +106,7 @@ gosh-rust-release: pb
 		--push \
 		.
 
+.PHONY: gosh-golang-release
 gosh-golang-release: pb
 	docker buildx build \
 		--no-cache \
@@ -109,7 +131,9 @@ init:
 .PHONY: install
 install:
 	cd gosh && cargo install -f --path .
+	cd git-server && cargo install -f --path .
 
 .PHONY: dev-install ## fast builds for debug
 dev-install:
 	cd gosh && cargo install --profile dev -f --path .
+	cd git-server && cargo install --profile dev -f --path .

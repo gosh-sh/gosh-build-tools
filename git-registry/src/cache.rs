@@ -58,9 +58,9 @@ impl GitCacheRepo {
                 .arg("clone")
                 .arg(&self.url)
                 .arg(".") // clone into current dir
+                .current_dir(&self.git_dir)
                 .stdout(Stdio::piped())
                 .stderr(Stdio::piped())
-                .current_dir(&self.git_dir)
                 .spawn()?;
 
             if let Some(io) = git_clone_process.stdout.take() {
@@ -87,6 +87,7 @@ impl GitCacheRepo {
     pub async fn update_server_info(&self) -> anyhow::Result<()> {
         Command::new("git")
             .arg("update-server-info")
+            .current_dir(&self.git_dir)
             .output()
             .await?;
         Ok(())
