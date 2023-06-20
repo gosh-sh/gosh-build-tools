@@ -1,8 +1,8 @@
-use crate::sbom::{gosh_classification::GoshClassification, Sbom};
 use git_registry::registry::GitCacheRegistry;
 use gosh_builder_grpc_api::proto::{
     gosh_get_server::GoshGet, CommitRequest, CommitResponse, FileRequest, FileResponse,
 };
+use gosh_sbom::{gosh_classification::GoshClassification, Sbom};
 use std::sync::Arc;
 use tokio::sync::Mutex;
 

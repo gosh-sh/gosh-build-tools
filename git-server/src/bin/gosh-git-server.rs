@@ -8,5 +8,5 @@ async fn main() -> std::io::Result<()> {
 
     let git_registry = Arc::new(GitCacheRegistry::default());
 
-    git_server::run(("0.0.0.0", 8080), git_registry).await
+    git_server::run(("0.0.0.0", 8080), None, git_registry).await
 }

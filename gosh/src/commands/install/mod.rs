@@ -1,8 +1,8 @@
 use crate::commands::build::build_image;
 use clap::ArgMatches;
 use git_registry::{git_context::GitContext, registry::GitCacheRegistry};
-use gosh_builder::sbom::{load_bom, Sbom, SBOM_DEFAULT_FILE_NAME};
 use gosh_builder_config::GoshConfig;
+use gosh_sbom::{load_bom, Sbom, SBOM_DEFAULT_FILE_NAME};
 use std::{net::SocketAddr, path::PathBuf, process::Stdio, sync::Arc};
 use tokio::{process::Command, sync::Mutex};
 

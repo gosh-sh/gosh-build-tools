@@ -14,6 +14,7 @@ dialoguer = "0.10.4"
 git-registry = { path = "../git-registry/" }
 gosh-builder = { path = "../gosh-builder" }
 gosh-builder-config = { path = "../gosh-builder-config" }
+gosh-sbom = { path = "../gosh-sbom" }
 gosh-utils = { path = "../gosh-utils" }
 hex = "0.4.3"
 openssl = { version = "0.10.52", features = ["vendored"] }

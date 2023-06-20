@@ -14,8 +14,10 @@ clap = { version = "4.1.8", features = ["derive"] }
 cyclonedx-bom = "0.4.0"
 dirs = "5.0"
 git-registry = { path = "../git-registry/" }
+git-server = { path = "../git-server/" }
 gosh-builder-config = { path = "../gosh-builder-config/" }
 gosh-builder-grpc-api = { path = "../gosh-builder-grpc-api/" }
+gosh-sbom = { path = "../gosh-sbom/" }
 gosh-utils = { path = "../gosh-utils/" }
 hyper = { version = "0.14.25", features = ["full"] }
 hyper-proxy = "0.9.1"

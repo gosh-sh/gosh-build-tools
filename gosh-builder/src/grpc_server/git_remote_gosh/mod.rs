@@ -1,14 +1,12 @@
 mod git_remote_process_pool;
 
-use crate::{
-    grpc_server::git_remote_gosh::git_remote_process_pool::GitRemoteProces,
-    sbom::{gosh_classification::GoshClassification, Sbom},
-};
+use crate::grpc_server::git_remote_gosh::git_remote_process_pool::GitRemoteProces;
 use git_remote_process_pool::GitRemotePool;
 use gosh_builder_grpc_api::proto::{
     git_remote_gosh_server::GitRemoteGosh, CommandRequest, CommandResponse, GetArchiveRequest,
     GetArchiveResponse, SpawnRequest, SpawnResponse,
 };
+use gosh_sbom::{gosh_classification::GoshClassification, Sbom};
 use std::sync::Arc;
 use tokio::sync::Mutex;
 

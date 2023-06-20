@@ -124,6 +124,11 @@ pb:
 clear:
 	rm -rf ./sbom.*
 
+.PHONY: fmt
+fmt:
+	taplo fmt
+	cargo fmt --all
+
 .PHONY: init
 init:
 	cargo run --bin gosh init

@@ -9,6 +9,6 @@ edition = "2021"
 anyhow = "1.0.71"
 dirs = "5.0.1"
 gosh-utils = { path = "../gosh-utils/" }
-tokio = { version = "1.28.1", features = ['process'] }
+tokio = { version = "1.28.2", features = ['process'] }
 tracing = "0.1.37"
 tracing-subscriber = { version = "0.3.17", features = ["env-filter"] }

@@ -3,9 +3,9 @@ use git_registry::{git_context::GitContext, registry::GitCacheRegistry};
 use gosh_builder::{
     docker_builder::{GoshBuilder, ImageBuilder},
     grpc_server,
-    sbom::{load_bom, Sbom, SBOM_DEFAULT_FILE_NAME},
 };
 use gosh_builder_config::GoshConfig;
+use gosh_sbom::{load_bom, Sbom, SBOM_DEFAULT_FILE_NAME};
 use std::{fs::File, net::SocketAddr, path::PathBuf, sync::Arc};
 use tokio::sync::Mutex;
 

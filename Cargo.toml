@@ -7,6 +7,7 @@ members = [
     "gosh-builder-config",
     "gosh-builder-grpc-api",
     "gosh-get",
+    "gosh-sbom",
     "gosh-utils",
 ]
 
