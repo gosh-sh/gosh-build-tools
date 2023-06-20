@@ -2,7 +2,7 @@ use clap::ArgMatches;
 use git_registry::{git_context::GitContext, registry::GitCacheRegistry};
 use gosh_builder::{
     docker_builder::{GoshBuilder, ImageBuilder},
-    grpc_server,
+    git_server,
 };
 use gosh_builder_config::GoshConfig;
 use gosh_sbom::{load_bom, Sbom, SBOM_DEFAULT_FILE_NAME};
@@ -134,7 +134,9 @@ pub async fn build_image(
     sbom: Arc<Mutex<Sbom>>,
     git_registry: Arc<GitCacheRegistry>,
 ) -> anyhow::Result<String> {
-    let stop_grpc_server = grpc_server::run(sbom_proxy_socket, sbom.clone(), git_registry).await?;
+    // TODO: merge GRPC and Git servers
+    // let stop_grpc_server = grpc_server::run(sbom_proxy_socket, sbom.clone(), git_registry).await?;
+    let stop_git_server = git_server::run(sbom_proxy_socket, sbom.clone(), git_registry)?;
 
     let build_result = tokio::spawn(async move {
         tracing::info!("Start build...");
@@ -152,7 +154,8 @@ pub async fn build_image(
     .expect("gosh builder subprocess join")?;
 
     tracing::info!("Stoping build server...");
-    stop_grpc_server();
+    // stop_grpc_server();
+    stop_git_server();
 
     if build_result.status.success() {
         tracing::info!("Build successful");

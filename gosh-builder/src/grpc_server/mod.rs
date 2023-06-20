@@ -11,7 +11,7 @@ use std::{net::SocketAddr, sync::Arc};
 use tokio::sync::Mutex;
 use tonic::transport::Server;
 
-pub async fn run(
+pub fn run(
     address: SocketAddr,
     sbom: Arc<Mutex<Sbom>>,
     git_cache_registry: Arc<GitCacheRegistry>,

@@ -12,16 +12,15 @@ name = "gosh-git-server"
 anyhow.workspace = true
 tracing.workspace = true
 
-actix-files = "0.6.2"
-actix-web = "4.3.1"
-askama_escape = "0.10.3"
+# askama_escape = "0.10.3"
+axum = "0.6.18"
 git-registry = { path = "../git-registry" }
 gosh-sbom = { path = "../gosh-sbom" }
 gosh-utils = { path = "../gosh-utils" }
+hyper = "0.14.26"
 percent-encoding = "2.3.0"
 serde = { version = "1.0.164", features = ["derive"] }
 tokio = { version = "1.28.2", features = ["full"] }
-tower = { version = "0.4.13", features = ["util", "timeout"] }
-tower-http = { version = "0.4.0", features = ["add-extension", "trace"] }
+tower-http = { version = "0.4.0", features = ["add-extension", "trace", "fs", "compression-zstd"] }
 tracing-subscriber = { version = "0.3.17", features = ["env-filter"] }
 uuid = { version = "1.3.4", features = ["serde", "v4"] }

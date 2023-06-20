@@ -8,24 +8,22 @@ pub fn run(
     sbom: Arc<Mutex<Sbom>>,
     git_cache_registry: Arc<GitCacheRegistry>,
 ) -> anyhow::Result<Box<dyn FnOnce()>> {
+    tracing::info!("Start Git Server on {}", address);
+
     // for shutdown
     let (tx, rx) = tokio::sync::oneshot::channel::<()>();
 
-    tracing::info!("Start Git Server on {}", address);
-    // let server = Server::builder()
-    //     .add_service(GitRemoteGoshServer::new(git_remote_gosh_service))
-    //     .add_service(GoshGetServer::new(gosh_get_service))
-    //     .serve_with_shutdown(address, async move {
-    //         rx.await.ok();
-    //         tracing::info!("gRPC received shutdown");
-    //     });
+    let server = git_server::server(address, Some(sbom), git_cache_registry)
+        .with_graceful_shutdown(async move {
+            rx.await.ok();
+            tracing::info!("gRPC received shutdown");
+        });
 
-    tracing::info!("Git Server ready");
+    tracing::info!("gRPC ready");
 
     tokio::spawn(async move {
-        git_server::run(address, Some(sbom), git_cache_registry);
-        // server.await.ok();
-        tracing::info!("Git Server stopped");
+        server.await.ok();
+        tracing::info!("gRPC stopped");
     });
 
     Ok(Box::new(move || {
