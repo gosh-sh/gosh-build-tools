@@ -76,6 +76,14 @@ gosh-git-server-push:
 		--push \
 		.
 
+.PHONY: gosh-git-server-release
+gosh-git-server-release:
+	docker buildx build \
+		--tag teamgosh/gosh-git-server \
+		--file images/git-server/Dockerfile \
+		--push \
+		.
+
 .PHONY: gosh-rust-push
 gosh-rust-push: pb
 	docker buildx build \
