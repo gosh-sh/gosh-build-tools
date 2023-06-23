@@ -18,7 +18,11 @@ pub struct Sbom {
 
 impl Sbom {
     pub fn append(&mut self, component_type: GoshClassification, raw_component: String) {
-        self.inner.push((component_type, raw_component));
+        self.inner.sort_unstable();
+        let item = (component_type, raw_component);
+        if self.inner.binary_search(&item).is_err() {
+            self.inner.push(item);
+        }
     }
 
     pub fn get_bom(&self) -> anyhow::Result<Bom> {

@@ -1,6 +1,6 @@
 use cyclonedx_bom::models::component::Classification;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
 pub enum GoshClassification {
     File,
     Commit,
