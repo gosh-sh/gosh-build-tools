@@ -35,3 +35,6 @@ insert_final_newline = unset
 indent_size = unset
 indent_style = unset
 trim_trailing_whitespace = unset
+
+[*.md]
+indent_size = 4
